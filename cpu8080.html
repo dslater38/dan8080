@@ -131,8 +131,6 @@
 //]]></script>
 	<script type="text/javascript">//<![CDATA[
 	
-	// var invadersRom = [ 0x01, 0x02, 0x01, 0x11, 0x20, 0x10, 0x21, 0x05, 0x03, 0x3e, 0x03, 0x97, 0x3e, 0x01, 0xc3, 0x00, 0x00 ];
-	
 		function write(str) {
 			var  t = document.getElementById("t");
 			t.textContent += "" + str + "\n";
@@ -185,66 +183,12 @@
 			ctx = canvas.getContext("2d");
 			
 			screen = new video.Screen(cpu, ctx,  canvas.width, canvas.height, false, 0);
-			
-			
-			//~ var imageData = ctx.getImageData( 0, 0, canvasWidth, canvasHeight );
-			
-			//~ var buf = new ArrayBuffer( imageData.data.length);				
-			//~ var data = new Uint32Array( buf );
-			//~ var bytes = new Uint8ClampedArray( buf );
-			
-			//~ for (var y = 0; y < canvasHeight; ++y) 
-			//~ {
-				//~ for (var x = 0; x < canvasWidth; ++x) 
-				//~ {
-					//~ var index = y*canvasWidth+x;
-					//~ var value = x * y & 0xff;
-					
-					//~ var pixel = 0xFF000000 | (value<<8);
-					
-					//~ // var pixel = 0xFF00FF00;
-					
-					//~ data[index] = pixel;
-				//~ }
-			//~ }
-			//~ imageData.data.set( bytes );
-			//~ ctx.putImageData(imageData, 0, 0);
+
 			theTable = getTable();
 		}
 		
 		function updateScreen() {
 			screen.render();
-			//~ var imageData = ctx.getImageData( 0, 0, canvasWidth, canvasHeight );
-			//~ var buf = new ArrayBuffer( imageData.data.length);				
-			//~ var data = new Uint32Array( buf );
-			//~ var bytes = new Uint8ClampedArray( buf );
-			
-			//~ if( canvasWidth > 0 && canvasHeight > 0 )
-			//~ {
-				//~ for(var j = 0; j < canvasHeight; j++) {
-					//~ var src = 0x2400 + (j << 5);
-					//~ var k = 0;
-					//~ for(var i = 0; i < 32; i++) {
-						//~ // vram = this.cpu.memory[src];
-						//~ vram = cpu.ram.getUint8( src );
-						//~ src += 1;
-						//~ for(var b = 0; b < 8; b++) {
-							//~ color = 0xFF000000;
-							//~ if(vram & 1) {
-							    //~ color = 0xFFFFFFFF;
-							//~ }
-							//~ var index =( j*canvasWidth + k)*4;
-							    //~ imageData.data[index++] = (color >> 16) & 0xFF;
-							    //~ imageData.data[index++] = (color >> 8) & 0xFF;
-							    //~ imageData.data[index++] = color & 0xFF;
-							    //~ imageData.data[index] = (color >> 24) & 0xFF;
-							//~ k++;
-							//~ vram = vram >> 1;							
-						//~ }
-					//~ }
-				//~ }
-				//~ ctx.putImageData( imageData, 0, 0 );
-			//~ }
 		}
 		
 		var go = false;
@@ -256,36 +200,6 @@
 			return (0xc7|(n<<3));
 		}
 		function run() {
-			//~ var step = 0;
-			//~ var st = document.getElementById("MAXSTEPS").value + 0;
-			//~ if( st  > 0 );
-				//~ maxsteps = st;
-			//~ while( go )
-			//~ {
-				//~ if( cpu.IF )
-				//~ {
-					//~ if( alt_interrupt == 0)
-					//~ {
-						//~ cpu.interrupt(rst(1));
-					//~ }
-					//~ else
-					//~ {
-						//~ cpu.interrupt(rst(2));
-					//~ }
-					//~ alt_interrupt = 1-alt_interrupt;
-				//~ }
-				//~ cpu.step();
-				 //~ updateT(cpu,getTable());
-				 //~ // updateScreen();
-				 //~ ++step;
-				 //~ if( maxsteps > 0 && step >= maxsteps )
-				 //~ {
-					//~ toggle();
-					//~ break;
-				//~ }
-			//~ }
-			//~ dumpMem( cpu, 0, cpu.ram.byteLength, t );
-			//~ updateScreen();
 			
 			if( go )
 			{
@@ -301,18 +215,13 @@
 					}
 					alt_interrupt = 1-alt_interrupt;
 				}
-				for( var i=0; i<2000; ++i )
+				for( var i=0; i<4000; ++i )
 				{
 					cpu.step();
-					updateT(cpu,theTable);
 					++step;
 				}
-				// if( (step % 100) == 0 )
-				{
-					//updateT(cpu,getTable());
-					updateScreen();
-				}
-				timer = setTimeout( run, 1 );
+				updateScreen();
+				// timer = setTimeout( run, 1 );
 			}
 			else
 			{
@@ -331,13 +240,13 @@
 			{
 				step = 0;
 				b.value = "stop...";
-				// timer = setInterval(run, 1);
-				timer = setTimeout( run, 1 );
+				timer = setInterval(run, 16);
+				// timer = setTimeout( run, 1 );
 			}
 			else
 			{
 				b.value = "run...";
-				// clearInterval(timer);
+				clearInterval(timer);
 			}
 		}
 		

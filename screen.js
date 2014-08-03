@@ -11,6 +11,9 @@ var video;
             this.canvas.fillRect(0, 0, width, height);
             this.imageData = this.canvas.createImageData(width, height);
         }
+	Screen.prototype.clear = function() {
+            this.canvas.fillRect(0, 0, this.width, this.height);
+	}
         Screen.prototype.render = function () {
             var a = 0;
             this.canvas.fillRect(0, 0, this.width, this.height);

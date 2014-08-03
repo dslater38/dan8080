@@ -159,8 +159,9 @@
 				return false;
 			}
 
-			function run() {
-				for(;step();) {
+			function run(max_steps) {
+				for( var i=0; i<max_steps;++i) {
+					step();
 				}
 			}
 		
@@ -214,8 +215,8 @@
 				step();
 			});
 			
-			defineProperty( cpu, "run", function() {
-				run();
+			defineProperty( cpu, "run", function(max_steps) {
+				run(max_steps);
 			});
 			
 			defineProperty( cpu, "reset", function() {
@@ -1223,7 +1224,7 @@
 			// IN p
 			instructions[0xDB] = function() {
 				var port = readImm8();
-				r8[iA] = 0;
+				r8[iA] = port == 2 ? 131 : 0;
 			}
 			
 			
