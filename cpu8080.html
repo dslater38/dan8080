@@ -3,9 +3,26 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <title>JavaScripot cpu8080</title>
+	<style>
+		#container
+		{
+		    max-width: 230px;
+		    max-height: 270px;
+		    -webkit-transform-origin: 50% 50%;
+		    -webkit-transform: rotate(-90deg);
+		    -moz-transform-origin: 50% 50%;
+		    -moz-transform: rotate(-90deg);
+		    -ms-transform-origin: 50% 50%;
+		    -ms-transform: rotate(-90deg);
+		    -o-transform-origin: 50% 50%;
+		    -o-transform: rotate(-90deg);
+		    padding: 1px 0px 3px 0;
+		}
+	
+	</style>
 	<script type="text/javascript" src="cpu8080.js" ></script>
 	<script type="text/javascript" src="invaders.rom.js"></script>
-	<!-- <script type="text/javascript" src="screen.js"></script> -->
+	<script type="text/javascript" src="screen.js"></script>
   <script type="text/javascript">//<![CDATA[
                 function cell( id ) {
                         return document.getElementById( id );
@@ -127,7 +144,8 @@
 		var ctx;
 		var canvasWidth=-1 , canvasHeight=-1;
 		var theTable;
-
+		var screen;
+		
 		function updateT(cpu,  t ) {
 			t.A = cpu.A;
 			t.B = cpu.B;
@@ -165,70 +183,68 @@
 			canvasHeight = canvas.height;		
 			
 			ctx = canvas.getContext("2d");
-			var imageData = ctx.getImageData( 0, 0, canvasWidth, canvasHeight );
 			
-			var buf = new ArrayBuffer( imageData.data.length);				
-			var data = new Uint32Array( buf );
-			var bytes = new Uint8ClampedArray( buf );
+			screen = new video.Screen(cpu, ctx,  canvas.width, canvas.height, false, 0);
 			
-			for (var y = 0; y < canvasHeight; ++y) 
-			{
-				for (var x = 0; x < canvasWidth; ++x) 
-				{
-					var index = y*canvasWidth+x;
-					var value = x * y & 0xff;
-					
-					var pixel = 0xFF000000 | (value<<8);
-					
-					// var pixel = 0xFF00FF00;
-					
-					data[index] = pixel;
-					
-					//~ var index = (y * canvasWidth + x) * 4;
+			
+			//~ var imageData = ctx.getImageData( 0, 0, canvasWidth, canvasHeight );
+			
+			//~ var buf = new ArrayBuffer( imageData.data.length);				
+			//~ var data = new Uint32Array( buf );
+			//~ var bytes = new Uint8ClampedArray( buf );
+			
+			//~ for (var y = 0; y < canvasHeight; ++y) 
+			//~ {
+				//~ for (var x = 0; x < canvasWidth; ++x) 
+				//~ {
+					//~ var index = y*canvasWidth+x;
 					//~ var value = x * y & 0xff;
-					//~ imageData.data[index]   = value;
-					//~ imageData.data[++index]   = value;
-					//~ imageData.data[++index]   = value;
-					//~ imageData.data[++index]   = 255;
-				}
-			}
-			imageData.data.set( bytes );
-			ctx.putImageData(imageData, 0, 0);
+					
+					//~ var pixel = 0xFF000000 | (value<<8);
+					
+					//~ // var pixel = 0xFF00FF00;
+					
+					//~ data[index] = pixel;
+				//~ }
+			//~ }
+			//~ imageData.data.set( bytes );
+			//~ ctx.putImageData(imageData, 0, 0);
 			theTable = getTable();
 		}
 		
 		function updateScreen() {
-			var imageData = ctx.getImageData( 0, 0, canvasWidth, canvasHeight );
-			var buf = new ArrayBuffer( imageData.data.length);				
-			var data = new Uint32Array( buf );
-			var bytes = new Uint8ClampedArray( buf );
+			screen.render();
+			//~ var imageData = ctx.getImageData( 0, 0, canvasWidth, canvasHeight );
+			//~ var buf = new ArrayBuffer( imageData.data.length);				
+			//~ var data = new Uint32Array( buf );
+			//~ var bytes = new Uint8ClampedArray( buf );
 			
-			if( canvasWidth > 0 && canvasHeight > 0 )
-			{
-				for(var j = 0; j < canvasHeight; j++) {
-					var src = 0x2400 + (j << 5);
-					var k = 0;
-					for(var i = 0; i < 32; i++) {
-						// vram = this.cpu.memory[src];
-						vram = cpu.ram.getUint8( src );
-						src += 1;
-						for(var b = 0; b < 8; b++) {
-							color = 0xFF000000;
-							if(vram & 1) {
-							    color = 0xFFFFFFFF;
-							}
-							var index =( j*canvasWidth + k)*4;
-							    imageData.data[index++] = (color >> 16) & 0xFF;
-							    imageData.data[index++] = (color >> 8) & 0xFF;
-							    imageData.data[index++] = color & 0xFF;
-							    imageData.data[index] = (color >> 24) & 0xFF;
-							k++;
-							vram = vram >> 1;							
-						}
-					}
-				}
-				ctx.putImageData( imageData, 0, 0 );
-			}
+			//~ if( canvasWidth > 0 && canvasHeight > 0 )
+			//~ {
+				//~ for(var j = 0; j < canvasHeight; j++) {
+					//~ var src = 0x2400 + (j << 5);
+					//~ var k = 0;
+					//~ for(var i = 0; i < 32; i++) {
+						//~ // vram = this.cpu.memory[src];
+						//~ vram = cpu.ram.getUint8( src );
+						//~ src += 1;
+						//~ for(var b = 0; b < 8; b++) {
+							//~ color = 0xFF000000;
+							//~ if(vram & 1) {
+							    //~ color = 0xFFFFFFFF;
+							//~ }
+							//~ var index =( j*canvasWidth + k)*4;
+							    //~ imageData.data[index++] = (color >> 16) & 0xFF;
+							    //~ imageData.data[index++] = (color >> 8) & 0xFF;
+							    //~ imageData.data[index++] = color & 0xFF;
+							    //~ imageData.data[index] = (color >> 24) & 0xFF;
+							//~ k++;
+							//~ vram = vram >> 1;							
+						//~ }
+					//~ }
+				//~ }
+				//~ ctx.putImageData( imageData, 0, 0 );
+			//~ }
 		}
 		
 		var go = false;
@@ -285,7 +301,7 @@
 					}
 					alt_interrupt = 1-alt_interrupt;
 				}
-				//for( var i=0; i<2000; ++i )
+				for( var i=0; i<2000; ++i )
 				{
 					cpu.step();
 					updateT(cpu,theTable);
@@ -373,7 +389,7 @@
 			<td headers="th0B7644A00003">HF&emsp;<input id="HF" readonly="true" style="width:4em;border-style:none" value="false" /></td>
 		</tr>
 		<tr align="left" valign="top">
-			<td colspan="4"><canvas id="SCREEN" width="256" height="224" /></td>
+			<td colspan="4" id="container" height="256" width="224" ><canvas id="SCREEN" width="256" height="224" /></td>
 		</tr>
 	</tbody>
 </table></td>

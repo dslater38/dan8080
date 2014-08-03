@@ -1671,6 +1671,7 @@ var cpu;
             this.disassembly_pc = this.PC;
             this.current_inst = this.FetchRomByte();
 	    this.executed[ this.executed.length ] = this.current_inst;
+		++(this.counter);
             if(this.mappingTable[this.current_inst] != null) {
                 this.mappingTable[this.current_inst].call(this);
             } else {

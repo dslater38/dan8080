@@ -25,7 +25,8 @@ var video;
                 src = 0x2400 + (j << 5);
                 k = 0;
                 for(var i = 0; i < 32; i++) {
-                    vram = this.cpu.memory[src];
+                    // vram = this.cpu.memory[src];
+		    vram = this.cpu.ram.getUint8(src);
                     src += 1;
                     for(var b = 0; b < 8; b++) {
                         color = 0xFF000000;

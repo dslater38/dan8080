@@ -30,13 +30,19 @@ oReq.onload = function (oEvent) {
         input.interval = id;
     }
 };
+var dumped = false;
+var executed_length = 100000;
 function run() {
-    var doDump = (processor.executed.length == 0);
+
     input.update();
     processor.Run();
-	if( doDump )
+	if( !dumped )
 	{
-		document.getElementById("EXECUTED").innerHTML = "var check = [ " + processor.executed.toString() + " ];";
+		if( processor.executed.length > executed_length )
+		{
+			dumped = true;
+			document.getElementById("EXECUTED").innerHTML = "var check = [ " + processor.executed.toString() + " ];";
+		}
 	}
     screen.render();
 }
