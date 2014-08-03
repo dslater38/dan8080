@@ -5,7 +5,7 @@
     <title>JavaScripot cpu8080</title>
 	<script type="text/javascript" src="cpu8080.js" ></script>
 	<script type="text/javascript" src="invaders.rom.js"></script>
-	<script type="text/javascript" src="screen.js"></script>
+	<!-- <script type="text/javascript" src="screen.js"></script> -->
   <script type="text/javascript">//<![CDATA[
                 function cell( id ) {
                         return document.getElementById( id );
@@ -46,7 +46,7 @@
 		}
 		function getTable() {
 			var t = {};
-			var cells8 = ["A", "B", "C", "D", "E", "H", "L" ];
+			var cells8 = ["A", "F", "B", "C", "D", "E", "H", "L" ];
 			var cells16 = ["BC", "DE", "HL", "SP", "PC"];
 			var flags = ["ZF", "SF", "PF", "CF", "HF" ];
 			for( var i=0; i<cells8.length;  ++i )
@@ -113,6 +113,9 @@
 		
 //]]></script>
 	<script type="text/javascript">//<![CDATA[
+	
+	// var invadersRom = [ 0x01, 0x02, 0x01, 0x11, 0x20, 0x10, 0x21, 0x05, 0x03, 0x3e, 0x03, 0x97, 0x3e, 0x01, 0xc3, 0x00, 0x00 ];
+	
 		function write(str) {
 			var  t = document.getElementById("t");
 			t.textContent += "" + str + "\n";
@@ -120,6 +123,11 @@
 		
 		var cpu = cpu8080.create( 65536 );
 		
+		var canvas;
+		var ctx;
+		var canvasWidth=-1 , canvasHeight=-1;
+		var theTable;
+
 		function updateT(cpu,  t ) {
 			t.A = cpu.A;
 			t.B = cpu.B;
@@ -128,6 +136,7 @@
 			t.E = cpu.E;
 			t.H = cpu.H;
 			t.L = cpu.L;
+			t.F = cpu.F;
 			
 			t.SP = cpu.SP;
 			t.PC = cpu.PC;
@@ -143,130 +152,176 @@
 		}
 		function onLoad() {
 			var t = getTable();
-			
-			//~ updateT(cpu,t);
-			
-			//~ var prog = new Uint8Array( 256 );
-			//~ for( var i=0; i<256; ++i )
-				//~ prog[i] = i;
-				
-			//~ cpu.load( 0, prog );
-			
-			//~ dumpMem( cpu, 0, 256, t );
-			
-			//~ var MOVAimm = (0x07<<3 | 0x06);
-			//~ var imm = 0x05;
-			//~ var MOVBA = (0x40 | (0x00<<3)|0x07);
-			//~ var ADDB = (0x80| 0);
-			
-			//~ cpu.reset();
-			//~ var arr = [ 0x3E, 0x9F, 0x47, 0x31, 0x00, 0x10, 0x3D, 0xC2, 0x06, 0x00]
-			//~ prog = new Uint8Array( arr.length );
-			
-			//~ for( i=0; i<arr.length; ++i )
-				//~ prog[i] = (arr[i] & 0xFF);
-			
-			//~ prog[0] = MOVAimm;
-			//~ prog[1] = imm;
-			//~ prog[2] = MOVBA;
-			//~ prog[3] = ADDB;
-			
-			
-			test_code = [
-	0x3e, 0x9f, 0x47, 0x31, 0x00, 0x10, 0x3d, 0xc2, 0x06, 0x00, 0x78, 0x80, 0x48, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x91, 0xc9
-];
-			
-			sample_code = [
-				0x00, //     NOP
-				0x00, //     NOP
-				0x00, //     NOP
-				0xc3, 0xd4, 0x18, // JP 18d4
-				0x00, //     NOP
-				0x00, //     NOP
-				0xf5, //     PUSH AF
-				0xc5, //     PUSH BC
-				0xd5, //     PUSH DE
-				0xe5, //     PUSH HL
-				0xc3, 0x8c, 0x00,  // JP 8c
-				0x00, //     NOP
-				0xf5, //     PUSH AF
-				0xc5, //     PUSH BC
-				0xd5, //     PUSH DE
-				0xe5, //     PUSH HL
-				];
-			
+	
 			
 			var code = invadersRom ;
 			
 			cpu.load(0, code);
 			
 			dumpMem( cpu, 0, cpu.ram.byteLength, t );
+				
+			canvas = document.getElementById("SCREEN");
+			canvasWidth  = canvas.width;
+			canvasHeight = canvas.height;		
 			
+			ctx = canvas.getContext("2d");
+			var imageData = ctx.getImageData( 0, 0, canvasWidth, canvasHeight );
 			
-			// dumpMem( cpu, 0, 256, t );
-			//~ var count=0;
-			//~ for( i=0; i<code.length; ++i )
-			//~ {
-			//~ ++count;
-				//~ cpu.step();
-				 //~ updateT(cpu,t);
-			//~ }
+			var buf = new ArrayBuffer( imageData.data.length);				
+			var data = new Uint32Array( buf );
+			var bytes = new Uint8ClampedArray( buf );
 			
-			//~ dumpMem( cpu, 0, cpu.ram.byteLength, t );
+			for (var y = 0; y < canvasHeight; ++y) 
+			{
+				for (var x = 0; x < canvasWidth; ++x) 
+				{
+					var index = y*canvasWidth+x;
+					var value = x * y & 0xff;
+					
+					var pixel = 0xFF000000 | (value<<8);
+					
+					// var pixel = 0xFF00FF00;
+					
+					data[index] = pixel;
+					
+					//~ var index = (y * canvasWidth + x) * 4;
+					//~ var value = x * y & 0xff;
+					//~ imageData.data[index]   = value;
+					//~ imageData.data[++index]   = value;
+					//~ imageData.data[++index]   = value;
+					//~ imageData.data[++index]   = 255;
+				}
+			}
+			imageData.data.set( bytes );
+			ctx.putImageData(imageData, 0, 0);
+			theTable = getTable();
+		}
+		
+		function updateScreen() {
+			var imageData = ctx.getImageData( 0, 0, canvasWidth, canvasHeight );
+			var buf = new ArrayBuffer( imageData.data.length);				
+			var data = new Uint32Array( buf );
+			var bytes = new Uint8ClampedArray( buf );
 			
-			//~ cpu.load(0, prog);
-			
-			//~ cpu.step();
-			//~ updateT(cpu,t);
-			//~ cpu.step();
-			//~ updateT(cpu,t);
-			//~ cpu.step();
-			//~ updateT(cpu,t);
-			//~ cpu.step();
-			//~ updateT(cpu,t);
-			//~ cpu.step();
-			//~ updateT(cpu,t);
-			//~ cpu.step();
-			//~ updateT(cpu,t);
-			
-			
-			//~ for( var i in cpu ) {
-				//~ if( typeof( cpu[i] ) == 'number' )
-				//~ {
-					//~ write( "" + i + " === 0x0" + cpu[i].toString(16) );
-				//~ }
-				//~ else
-				//~ {
-					//~ write( "" + i + " === " + cpu[i].toString() );
-				//~ }
-			//~ }
+			if( canvasWidth > 0 && canvasHeight > 0 )
+			{
+				for(var j = 0; j < canvasHeight; j++) {
+					var src = 0x2400 + (j << 5);
+					var k = 0;
+					for(var i = 0; i < 32; i++) {
+						// vram = this.cpu.memory[src];
+						vram = cpu.ram.getUint8( src );
+						src += 1;
+						for(var b = 0; b < 8; b++) {
+							color = 0xFF000000;
+							if(vram & 1) {
+							    color = 0xFFFFFFFF;
+							}
+							var index =( j*canvasWidth + k)*4;
+							    imageData.data[index++] = (color >> 16) & 0xFF;
+							    imageData.data[index++] = (color >> 8) & 0xFF;
+							    imageData.data[index++] = color & 0xFF;
+							    imageData.data[index] = (color >> 24) & 0xFF;
+							k++;
+							vram = vram >> 1;							
+						}
+					}
+				}
+				ctx.putImageData( imageData, 0, 0 );
+			}
 		}
 		
 		var go = false;
+		var alt_interrupt = 0;
+		var timer, timer2;
+		var maxsteps = 0;
+		var step = 0;
+		function rst( n ) {
+			return (0xc7|(n<<3));
+		}
 		function run() {
+			//~ var step = 0;
+			//~ var st = document.getElementById("MAXSTEPS").value + 0;
+			//~ if( st  > 0 );
+				//~ maxsteps = st;
+			//~ while( go )
+			//~ {
+				//~ if( cpu.IF )
+				//~ {
+					//~ if( alt_interrupt == 0)
+					//~ {
+						//~ cpu.interrupt(rst(1));
+					//~ }
+					//~ else
+					//~ {
+						//~ cpu.interrupt(rst(2));
+					//~ }
+					//~ alt_interrupt = 1-alt_interrupt;
+				//~ }
+				//~ cpu.step();
+				 //~ updateT(cpu,getTable());
+				 //~ // updateScreen();
+				 //~ ++step;
+				 //~ if( maxsteps > 0 && step >= maxsteps )
+				 //~ {
+					//~ toggle();
+					//~ break;
+				//~ }
+			//~ }
+			//~ dumpMem( cpu, 0, cpu.ram.byteLength, t );
+			//~ updateScreen();
+			
 			if( go )
 			{
-				cpu.step()
-				 updateT(cpu,getTable());
+				if( cpu.IF )
+				{
+					if( alt_interrupt == 0)
+					{
+						cpu.interrupt(rst(1));
+					}
+					else
+					{
+						cpu.interrupt(rst(2));
+					}
+					alt_interrupt = 1-alt_interrupt;
+				}
+				//for( var i=0; i<2000; ++i )
+				{
+					cpu.step();
+					updateT(cpu,theTable);
+					++step;
+				}
+				// if( (step % 100) == 0 )
+				{
+					//updateT(cpu,getTable());
+					updateScreen();
+				}
+				timer = setTimeout( run, 1 );
 			}
 			else
+			{
+				//clearInterval(timer2);
 				dumpMem( cpu, 0, cpu.ram.byteLength, t );
+				updateScreen();
+			}
 		}
 		
-		var timer;
+		
 		
 		function toggle() {
 			go = go ? false : true;
 			var b = document.getElementById("RUN");
 			if( go )
 			{
+				step = 0;
 				b.value = "stop...";
-				timer = setInterval(run, 1);
+				// timer = setInterval(run, 1);
+				timer = setTimeout( run, 1 );
 			}
 			else
 			{
 				b.value = "run...";
-				clearInterval(timer);
+				// clearInterval(timer);
 			}
 		}
 		
@@ -313,7 +368,7 @@
 		</tr>
 		<tr align="left" valign="top">
 			<!-- <td colspan="2" headers="th0B7644A00000" style="background-color:lightgrey"></td> -->
-			<td colspan="2" headers="th0B7644A00000" ><input id="RUN" type="button" value="run..." onclick="toggle();"/></td>
+			<td colspan="2" headers="th0B7644A00000" ><input id="RUN" type="button" value="run..." onclick="toggle();"/><input id="MAXSTEPS" value="1500" /></td>
 			<td colspan="2" headers="th0B7644A00002">PC&emsp;<input id="PC" readonly="true" style="width:4em;border-style:none" value="0x0000" /></td>
 			<td headers="th0B7644A00003">HF&emsp;<input id="HF" readonly="true" style="width:4em;border-style:none" value="false" /></td>
 		</tr>
