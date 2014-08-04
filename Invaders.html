@@ -18,7 +18,10 @@
 		    -o-transform: rotate(-90deg);
 		    padding: 1px 0px 3px 0;
 		}
-	
+		
+		input::first-letter {
+			text-decoration : underline
+		}
 	</style>
 	<script type="text/javascript" src="cpu8080.js" ></script>
 	<script type="text/javascript" src="invaders.rom.js"></script>
@@ -29,9 +32,17 @@
 	<table>
 		<thead><tr><th id="h1">Space Invaders</th></tr></thead>
 		<tbody>
-		<tr><td headers="h1" style="height:256px;width:224px"><div id="container"><canvas id="SCREEN" width="256" height="224" /></div></td>
-			<td><input type="button" value="run..." onclick="toggle();" id="RUN" /></td>
-			<td><input type="button" value="reset" onclick="reset();" id="RESET" /></td>
+		<tr><td headers="h1" style="height:1328px;width:768px;"><div id="container"><canvas id="SCREEN" width="256" height="224" style="position:relative;width:300%;height:300%" /></div></td>
+			<td>
+			<input type="button" value="(c)oin" onclick="coin();" id="COIN" />
+			<input type="button" value="(1) Player" onclick="Player1();" id="PLAYER1" />
+			<input type="button" value="(2) Players" onclick="Player2();" id="PLAYER2" /><br/>
+			<input type="button" value="run..." onclick="toggle();" id="RUN" />
+			<input type="button" value="reset" onclick="reset();" id="RESET" />
+			<br/>
+			Background Color <input type="color" value="#000000" id="BGCOLOR" /><br/>
+			Foreground Color <input type="color" value="#FF00FF" id="FGCOLOR" />
+			</td>
 		</tr>
 		</tbody>
 	</table>

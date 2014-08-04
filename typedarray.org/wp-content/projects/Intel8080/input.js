@@ -10,7 +10,7 @@ var io;
             this.IN_PORT1 = 0;
             this.IN_PORT2 = 0;
             this.SINGLE = 0x53;
-            this.MULTIPLAYER = 0xBA;
+            this.MULTIPLAYER = 0x54;
             this.COIN = 0x43;
             this.LEFT = 0x25;
             this.RIGHT = 0x27;

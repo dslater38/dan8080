@@ -37,6 +37,9 @@
 			var mem = new ArrayBuffer( memsize );
 			var ram = new DataView( mem, 0, memsize );
 			
+			var in_ports = [];
+			var out_ports = [];
+			
 			var interrupt_code=0;
 			var interrupted = false;
 			
@@ -82,7 +85,23 @@
 			var condition_codes = [iZF, iZF, iCF, iCF, iPF, iPF, iSF, iSF]
 			
 			var i;
-						
+			
+			function attachPort( port, read, write )
+			{
+				if( port < 0 || port > 255 )
+					throw "Error: 0 <= port_number <= 255";
+				
+				if( typeof(read) == 'function' )
+					in_ports[port] = read;
+				else
+					in_ports[port] = undefined;
+				
+				if( typeof(write) == 'function' )
+					out_ports[port] = write;
+				else
+					out_ports[port] = write;
+			}
+			
 			function readImm8( ) {
 				var p = regs.getUint16( iPC, true );
 				regs.setUint16(iPC, p+1, true );
@@ -225,6 +244,10 @@
 			
 			defineProperty( cpu, "load", function( base_addr, prog) {
 				load( base_addr, prog);
+			});
+			
+			defineProperty( cpu, "attachPort", function(port, read, write) {
+				attachPort( port, read, write);
 			});
 		
 			// add memory			
@@ -1224,13 +1247,18 @@
 			// IN p
 			instructions[0xDB] = function() {
 				var port = readImm8();
-				r8[iA] = port == 2 ? 131 : 0;
+				var val;
+				if( typeof( in_ports[port] ) == 'function' )
+					val = in_ports[port]();
+				r8[iA] = val;
 			}
 			
 			
 			// OUT p
 			instructions[0xD3] = function() {
 				var port = readImm8();
+				if( typeof( out_ports[port] ) == 'function' )
+					 out_ports[port](r8[iA]);
 			}
 			
 			// EI
