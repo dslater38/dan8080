@@ -28,7 +28,26 @@ var video;
 		var b = clr & 0xFF;
 		return "rgba(" + r.toString() + "," + g.toString() + "," + b.toString() + "," + a.toString() + ")";
 	}
-	    
+	
+	function color2value( color ) {
+		var canvas = document.createElement("canvas");
+		canvas.width = 10;
+		canvas.height = 10;
+		var ctx = canvas.getContext('2d');
+		ctx.fillStyle = color;
+		ctx.fillRect(0, 0, 10, 10);
+		var imageData = ctx.getImageData(0, 0, 10, 10);
+		var data = imageData.data;
+		var arr = new Uint32Array(data.buffer);
+		return arr[0];
+		//~ var r = data[0];
+		//~ var g = data[1];
+		//~ var b = data[2];
+		//~ var a = data[3];
+		//~ return ((a<<24)|(r<<16)|(g<<8)|b);
+	}
+
+	
         function Screen(cpu, canvas, width, height, transparent, fillColor) {
 		this.width = width;
 		this.height = height;
@@ -56,12 +75,14 @@ var video;
 		this.copyScreen();
         };
 	Screen.prototype.setBackground = function(color) {
-		this.bg = rgb2int(hexToRgb(color));
-		this.canvas.fillStyle = css_color(this.bg);
+		// this.bg = rgb2int(hexToRgb(color));
+		this.bg = color2value(color);
+		this.canvas.fillStyle = color;// css_color(this.bg);
 	}
 	Screen.prototype.setForeground = function(color) {
-		this.fg = rgb2int(hexToRgb(color));
-		this.canvas.strokeStyle = css_color(this.fg);				
+		// this.fg = rgb2int(hexToRgb(color));
+		this.fg = color2value(color);
+		this.canvas.strokeStyle = color;// css_color(this.fg);				
 	}
 	
 	Screen.prototype.RandomColor = function() {

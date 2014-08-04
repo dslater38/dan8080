@@ -7,6 +7,7 @@ function ports() {
 	OUT_PORT5 = 0;
 	IN_PORT1 = 0;
 	IN_PORT2 = 0;
+	a = enableAudio();
 	
 	this.init = function() {
             IN_PORT2 = (0x1 | 0x2);
@@ -30,6 +31,15 @@ function ports() {
 	}
 	
 	this.write3 = function(value) {
+		if( (value & 0x02) && !(OUT_PORT3 & 0x02) )
+			a.playShot();
+		
+		if( (value & 0x04) && !(OUT_PORT3 & 0x04) )
+			a.playBaseHit();
+		
+		if( (value & 0x08) && !(OUT_PORT3 & 0x08) )
+			a.playInvHit();
+		
 		OUT_PORT3 = value;
 	}
 	
@@ -39,6 +49,18 @@ function ports() {
 	}
 	
 	this.write5 = function(value) {
+		if( (value & 0x01) && !(OUT_PORT3 & 0x01) )
+			a.playWalk1();
+		
+		if( (value & 0x02) && !(OUT_PORT3 & 0x02) )
+			a.playWalk2();
+		
+		if( (value & 0x04) && !(OUT_PORT3 & 0x04) )
+			a.playWalk3();
+		
+		if( (value & 0x08) && !(OUT_PORT3 & 0x08) )
+			a.playWalk4();
+		
 		OUT_PORT5 = value;
 	}
 	
