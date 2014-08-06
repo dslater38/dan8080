@@ -145,7 +145,7 @@ var cpu = cpu8080.create( 65536 );
 var screen,io;
 var go = false;
 var alt_interrupt = 0;
-var timer,timer2, timer3;
+var timer,timer2;
 
 function coin() {
 	io.coin(true);
@@ -163,8 +163,13 @@ function Player2() {
 }
 
 function onLoad() {
-	var code = invadersRom ;		
-	cpu.load(0, code);
+	// var code = invadersRom ;		
+	// cpu.load(0, code);
+     cpu.load(0x0000, tn01);
+     cpu.load(0x0800, tn02);
+     cpu.load(0x1000, tn03);
+     cpu.load(0x1800, tn04);
+     cpu.load(0x4000, tn05);
 	io = attachPorts(cpu);
 	var canvas = document.getElementById("SCREEN");
 	ctx = canvas.getContext("2d");
@@ -172,7 +177,7 @@ function onLoad() {
 	screen.setBackground( document.getElementById("BGCOLOR").value);
 	screen.setForeground( document.getElementById("FGCOLOR").value);
 	screen.clear();
-	var onKeyDown = function(e) {
+	this.document.onkeydown = function(e) {
 		switch(e.keyCode)
 		{
 			case 67:
@@ -191,8 +196,7 @@ function onLoad() {
 				io.fire(true);break;
 		}
 	}
-
-	var onKeyUp = function(e) {
+	this.document.onkeyup = function(e) {
 		switch(e.keyCode)
 		{
 			case 67:
@@ -209,12 +213,6 @@ function onLoad() {
 				io.fire(false);break;
 		}
 	}
-	
-	this.document.addEventListener("keydown", onKeyDown, false);
-	this.document.addEventListener("keyup", onKeyUp, false);
-	canvas.addEventListener("keydown", onKeyDown, false);
-	canvas.addEventListener("", onKeyUp, false);
-	
 	toggle();
 }
 
@@ -235,17 +233,11 @@ function processInterrupts() {
 }
 
 function run() {
-	try
-	{
-		cpu.run(2000);
-		timer = setTimeout(run, 4);
-	}
-	catch ( e )
-	{
-		clearInterval(timer2);
-		clearInterval(timer3);
-		alert( e.message );
-	}
+	cpu.run(2000);
+	processInterrupts();
+	cpu.run(2000);
+	processInterrupts();
+	cpu.run(2000);
 }
 
 function render() {
@@ -275,14 +267,12 @@ function toggle() {
 		
 		step = 0;
 		b.value = "stop...";
-		timer = setTimeout(run, 4);
+		timer = setInterval(run, 16);
 		timer2 = setInterval(render, 16);
-		timer3 = setInterval(processInterrupts, 4 );
 	}
 	else
 	{
 		b.value = "run...";
-		clearInterval(timer3);
 		clearInterval(timer);
 	}
 }

@@ -21,37 +21,45 @@
 		this.walk4.src='sound/walk4.ogg';
 		
 		this.playBaseHit = function() {
-			this.basehit.play();
+			// this.basehit.play();
+			window.setTimeout(this.basehit.play.bind(this.basehit));
 		}
 		
 		this.playShot = function() {
-			this.shot.play();
+			//this.shot.play();
+			window.setTimeout(this.shot.play.bind(this.shot));
 		}
 		
 		this.playUfoHit = function() {
-			this.ufohit.play();
+			//this.ufohit.play();
+			window.setTimeout(this.ufohit.play.bind(this.ufohit));
 		}
 		
 		this.playInvHit = function() {
-			this.invhit.play();
+			//this.invhit.play();
+			window.setTimeout(this.invhit.play.bind(this.invhit));
 		}
 		
 		this.playWalk1 = function() {
-			this.walk1.play();
+			//this.walk1.play();
+			window.setTimeout(this.walk1.play.bind(this.walk1));
 		}
 		
 		this.playWalk2 = function() {
-			this.walk2.play();
+			//this.walk2.play();
+			window.setTimeout(this.walk2.play.bind(this.walk2));
 		}
 		
 		this.playWalk3 = function() {
-			this.walk3.play();
+			//this.walk3.play();
+			window.setTimeout(this.walk3.play.bind(this.walk3));
 		}
 		
 		this.playWalk4 = function() {
-			this.walk4.play();
+			//this.walk4.play();
+			window.setTimeout(this.walk4.play.bind(this.walk4));
 		}
 	
 	}
-	return audio;
+	return new audio();
    }

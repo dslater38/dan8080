@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <title>JavaScripot cpu8080</title>
+	<style>
+	
+		input::first-letter {
+			text-decoration : underline
+		}
+		
+		canvas:-webkit-full-screen {
+			height:100%
+		}
+		canvas:-moz-full-screen {
+			height:100%
+		}
+		canvas:-ms-full-screen {
+			height:100%
+		}
+		canvas:-o-full-screen	 {
+			height:100%
+		}
+		canvas:full-screen {
+			height:100%
+		}
+		canvas:-webkit-fullscreen {
+			height:100%
+		}
+		canvas:-moz-fullscreen {
+			height:100%
+		}
+		canvas:-ms-fullscreen {
+			height:100%
+		}
+		canvas:-o-fullscreen	 {
+			height:100%
+		}
+		canvas:fullscreen {
+			height:100%
+		}
+		
+	</style>
+	<script type="text/javascript" src="cpu8080.js" ></script>
+	<script type="text/javascript" src="invaders.rom.js"></script>
+	<script type="text/javascript" src="screen.test.js"></script>
+	<script type="text/javascript" src="audio.js" ></script>
+  	<script type="text/javascript" src="Invaders.js"></script>
+	<script type="text/javascript" >
+		   function fullscreen() {
+			var e = document.getElementById('SCREEN');
+			if (e.requestFullScreen) {  
+				e.requestFullScreen();  
+			} else if (e.mozRequestFullScreen) {  
+				e.mozRequestFullScreen();  
+			} else if (e.webkitRequestFullScreen) {  
+				e.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);  
+			}  
+		}
+	</script>
+  </head>
+  <body onload="onLoad();" style="height:100%" >
+  <div style="height:80%"><canvas id="SCREEN" width="224" height="256" style="height:80%"/></div>
+  <div ><input type="button" value="Fullscreen" onclick="fullscreen();" /></div>
+  <input type="hidden" id="BGCOLOR" value="#000000" />
+  <input type="hidden" id="FGCOLOR" value="#00FFFF" />
+  <input type="hidden" id="RUN" value="run..." />
+  </body>
+</html>

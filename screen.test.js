@@ -40,11 +40,6 @@ var video;
 		var data = imageData.data;
 		var arr = new Uint32Array(data.buffer);
 		return arr[0];
-		//~ var r = data[0];
-		//~ var g = data[1];
-		//~ var b = data[2];
-		//~ var a = data[3];
-		//~ return ((a<<24)|(r<<16)|(g<<8)|b);
 	}
 
 	
@@ -54,16 +49,14 @@ var video;
 		this.transparent = transparent;
 		this.fillColor = fillColor;
 		this.canvas = canvas;
-		// this.cpu = cpu;
+		this.cpu = cpu;
 		this.imageData = this.canvas.createImageData(width, height);
 		this.bg = 0xFFFF00FF;
 		this.fg = 0xFF00FF00;
 		this.vmem;
 
-		this.mapMemory( cpu.ram.buffer, 0x2400, 7200 );
+		this.mapMemory( cpu.ram.buffer, 0x2400, 7168 );
 		
-		// var buffer = new ArrayBuffer(this.imageData.data.length );
-		// this.data8 = new Uint8ClampedArray(buffer);
 		this.data32 = new Uint32Array(this.imageData.data.buffer);
 		
 		this.canvas.fillStyle = css_color(this.bg);
@@ -74,7 +67,7 @@ var video;
 	}
         Screen.prototype.render = function () {
 		var a = 0;
-		this.canvas.fillRect(0, 0, this.width, this.height);
+		// this.canvas.fillRect(0, 0, this.width, this.height);
 		this.copyScreen();
         };
 	Screen.prototype.setBackground = function(color) {
@@ -110,25 +103,20 @@ var video;
 	}
 	
         Screen.prototype.copyScreen = function () {
-		var color = 0;
-		var k = 0;
-		var src;
-		var vram;
-		for(var j = 0; j < this.height; j++) {
-			// src = 0x2400 + (j << 5);
-			src = (j<<5);
-			k = 0;
-			for(var i = 0; i < 32; i++) {
-				// vram = this.cpu.ram.getUint8(src);
-				vram = this.vmem[src];
-				src += 1;
-				for(var b = 0; b < 8; b++) {
-					color = (vram & 1)  ? this.rowColor(i) : this.bg;
-					
-					this.setPixel(this.data32, k, j, color);
-					k++;
-					vram >>= 1;
-				}
+		for(var j = 0; j < this.width; j++) {
+			var src = (j<<5);
+			var k = this.height;
+			for(var i = 0; i < 32; ++i) {
+				var vram = this.vmem[src];
+				++src;
+				this.setPixel(  this.data32, j, k--, (vram & 0x01) ? this.rowColor(i) : this.bg );
+				this.setPixel(  this.data32, j, k--, (vram & 0x02) ? this.rowColor(i) : this.bg );
+				this.setPixel(  this.data32, j, k--, (vram & 0x04) ? this.rowColor(i) : this.bg );
+				this.setPixel(  this.data32, j, k--, (vram & 0x08) ? this.rowColor(i) : this.bg );
+				this.setPixel(  this.data32, j, k--, (vram & 0x10) ? this.rowColor(i) : this.bg );
+				this.setPixel(  this.data32, j, k--, (vram & 0x20) ? this.rowColor(i) : this.bg );
+				this.setPixel(  this.data32, j, k--, (vram & 0x40) ? this.rowColor(i) : this.bg );
+				this.setPixel(  this.data32, j, k--, (vram & 0x80) ? this.rowColor(i) : this.bg );
 			}
 		}
 		this.canvas.putImageData(this.imageData, 0, 0);

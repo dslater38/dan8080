@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <title>JavaScripot cpu8080</title>
+	<style>
+		#container
+		{
+		    -webkit-transform-origin: 50% 50%;
+		    -webkit-transform: rotate(-90deg);
+		    -moz-transform-origin: 50% 50%;
+		    -moz-transform: rotate(-90deg);
+		    -ms-transform-origin: 50% 50%;
+		    -ms-transform: rotate(-90deg);
+		    -o-transform-origin: 50% 50%;
+		    -o-transform: rotate(-90deg);
+		    padding: 0 0 0 0;
+		    height:85%;
+		    top:7%;
+		    position:absolute;
+		    background-color:blue;
+		}
+		
+		input::first-letter {
+			text-decoration : underline
+		}
+	</style>
+	<script type="text/javascript" src="cpu8080.js" ></script>
+	<script type="text/javascript" src="invaders.rom.js"></script>
+	<script type="text/javascript" src="screen.js"></script>
+	<script type="text/javascript" src="audio.js" ></script>
+  	<script type="text/javascript" src="Invaders.js"></script>
+	<script type="text/javascript" >
+		function foo() {
+			document.getElementById("SCREEN").webkitRequestFullScreen();
+			onLoad();
+		}
+	</script>
+  </head>
+  <body onload="foo();" >
+  <div id="container"><canvas id="SCREEN" width="256" height="224"  style="position:relative;height:100%;top:0"/></div>
+  <input type="hidden" id="BGCOLOR" value="#000000" />
+  <input type="hidden" id="FGCOLOR" value="#00FFFF" />
+  <input type="hidden" id="RUN" value="run..." />
+  </body>
+</html>

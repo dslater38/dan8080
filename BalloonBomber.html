@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <title>JavaScripot cpu8080</title>
+	<style>
+		#container
+		{
+		    max-width: 256px;
+		    max-height: 224px;
+		    -webkit-transform-origin: 50% 50%;
+		    -webkit-transform: rotate(-90deg);
+		    -moz-transform-origin: 50% 50%;
+		    -moz-transform: rotate(-90deg);
+		    -ms-transform-origin: 50% 50%;
+		    -ms-transform: rotate(-90deg);
+		    -o-transform-origin: 50% 50%;
+		    -o-transform: rotate(-90deg);
+		    padding: 1px 0px 3px 0;
+		    position:fixed;
+		    left:0;
+		    top:530px;
+		    width:448px;
+		    height:512px;
+		}
+		
+		input::first-letter {
+			text-decoration : underline
+		}
+	</style>
+	<script type="text/javascript" src="cpu8080.js" ></script>
+	<script type="text/javascript" src="tn01.js"></script>
+	<script type="text/javascript" src="tn02.js"></script>
+	<script type="text/javascript" src="tn03.js"></script>
+	<script type="text/javascript" src="tn04.js"></script>
+	<script type="text/javascript" src="tn05.js"></script>
+	<script type="text/javascript" src="screen.js"></script>
+	<script type="text/javascript" src="audio.js" ></script>
+  	<script type="text/javascript" src="BalloonBomber.js"></script>
+  </head>
+  <body onload="onLoad();">
+  <div>
+  <div id="container"><canvas id="SCREEN" width="256" height="224"  style="position:relative;width:300%;height:300%" /></div>
+  <div style="position:fixed;left:850px" >Background Color <input type="color" value="#000000" id="BGCOLOR" /><br/>Foreground Color <input type="color" value="#FF00FF" id="FGCOLOR" /></div>
+  </div>
+  <div style="left450px;">
+	<table>
+		<thead><tr><th id="h1">Space Invaders</th></tr></thead>
+		<tbody>
+		<tr><td headers="h1" style="height:1328px;width:768px;"></td>
+			<td>
+			<input type="button" value="(c)oin" onclick="coin();" id="COIN" />
+			<input type="button" value="(1) Player" onclick="Player1();" id="PLAYER1" />
+			<input type="button" value="(2) Players" onclick="Player2();" id="PLAYER2" /><br/>
+			<input type="button" value="run..." onclick="toggle();" id="RUN" />
+			<input type="button" value="reset" onclick="reset();" id="RESET" />
+		</tr>
+		</tbody>
+	</table></div>
+  </body>
+</html>
