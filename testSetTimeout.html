@@ -1,0 +1,27 @@
+<html>
+<head>
+<script type="text/javascript" >
+	function timeout(delay) {
+		this.st = 0;
+		this.delay = delay;
+		this.interval = function() {
+			var s = new Date().getTime();
+			document.write( "setTimeout(" + this.delay.toString() + ") took " + (s - this.st).toString() + " milliseconds");
+		}
+		this.onMessage = function(event ) {
+			var s = new Date().getTime();
+			document.write( "postMessage() took " + (s - event.data).toString() + " milliseconds");
+		}
+		this.st = new Date().getTime();
+		// window.setTimeout(this.interval.bind(this), delay);
+		window.addEventListener("message", this.onMessage.bind(this), false );
+		window.postMessage(  new Date().getTime(),"*");
+	}
+	var t;
+	function onLoad() {
+		t = new timeout(0);
+	}
+</script>
+</head>
+<body onload="onLoad();" />
+</html>

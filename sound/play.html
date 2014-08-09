@@ -1,0 +1,17 @@
+<html>
+<head>
+<script>
+	function p() {
+		document.getElementById("a").play();
+	}
+	function onLoad() {
+		window.setInterval(p, 150);
+	}
+</script>
+</head>
+<body onload="onLoad();" >
+<audio id="a" controls >
+<source src="ufo.ogg" type="audio/ogg">
+</audio>
+</body>
+</html>

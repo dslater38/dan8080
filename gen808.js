@@ -219,3 +219,16 @@ function ADD(s) {
 }
 
 
+
+function bit(n) {
+	ZF( r8[iA] & (1<<n) );
+}
+
+function set(n) {
+	r8[iA] |= (1<<n);
+}
+
+function res(n) {
+	r8[iA] &= ~(1<<n);
+}
+

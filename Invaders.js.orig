@@ -1,0 +1,581 @@
+// SPace Invaders port usage
+//~ Port 0
+	//~ bit 0 DIP4 (Seems to be self-test-request read at power up)
+	//~ bit 1 Always 1
+	//~ bit 2 Always 1
+	//~ bit 3 Always 1
+	//~ bit 4 Fire
+	//~ bit 5 Left
+	//~ bit 6 Right
+	//~ bit 7 ? tied to demux port 7 ?
+//~ Port 1
+	//~ bit 0 = CREDIT (1 if deposit)
+	//~ bit 1 = 2P start (1 if pressed)
+	//~ bit 2 = 1P start (1 if pressed)
+	//~ bit 3 = Always 1
+	//~ bit 4 = 1P shot (1 if pressed)
+	//~ bit 5 = 1P left (1 if pressed)
+	//~ bit 6 = 1P right (1 if pressed)
+	//~ bit 7 = Not connected
+//~ Port 2
+	//~ bit 0 = DIP3 00 = 3 ships 10 = 5 ships
+	//~ bit 1 = DIP5 01 = 4 ships 11 = 6 ships
+	//~ bit 2 = Tilt
+	//~ bit 3 = DIP6 0 = extra ship at 1500, 1 = extra ship at 1000
+	//~ bit 4 = P2 shot (1 if pressed)
+	//~ bit 5 = P2 left (1 if pressed)
+	//~ bit 6 = P2 right (1 if pressed)
+	//~ bit 7 = DIP7 Coin info displayed in demo screen 0=ON
+//~ Port 3
+	//~ bit 0-7 Shift register data
+
+function consoleButton = function(mask) {
+	this.mask = mask;
+	this.pressed = false;
+	this.down = function() {
+		this.pressed = true;
+	}
+	this.up = function() {
+		this.pressed = false;
+	}
+	this.value = function() {
+		return this.pressed ? this.mask : 0;
+	}
+}
+
+function bitShifter() {
+
+	var bitShift = 0;
+	var loByte = 0
+	var hiByte = 0;
+	
+	this.setShift = function(s) {
+		butShift = s;
+	}
+	
+	this.setValue(val) {
+		lowByte = hiByte;
+		hiByte = val;
+	}
+	
+	this.readValue = function() {
+		return ((((hiByte << 8) | lowByte) << bitShift) >> 8);
+	}
+}
+
+function dipSwitch() {
+	this.dip0 = false;
+	this.dip1 = false;
+	this.set0 = function(b) {
+		this.dip0 = b ? true : false;
+	}
+	this.set1 = function(b) {
+		this.dip1 = b ? true : false;
+	}
+	this.value = function() {
+		return ((this.dip0 ? 0x02 : 0x00) | (this.dip1 ? 0x01 : 0x00));
+	}
+}
+
+function hPort() {
+	var value = 0;
+	var ctx = this;
+
+	function setBit( bit, val ) {
+		if( val ) {
+			value |= (1<<bit);
+		}
+		else {
+			value &= ~(1<<bit);
+		}
+	}
+	
+	this.read = function() {
+		return value;
+	}
+	
+	this.getWire( bit ) {
+		var wire = {
+			"raise" : setBit.bind(this,bit,true),
+			"lower": setBit.bind(this,bit,false)
+		};
+		return wire;
+	}
+}
+
+function Btn(wire) {
+	this.wire = wire;
+	this.down = function() {
+		wire.raise();
+	}
+	this.up = function() {
+		wire.lower();
+	}
+}
+	
+	//
+	//	0x01	(1)
+	//	0x02 (2)
+	//	0x04 (3)
+	//	0x08 (4)
+	//	0x10 (5)
+	//	0x20 (6)
+	//	0x40 (7)
+	//	0x80 (8)
+
+function ports() {
+	
+	
+	var inP1 = new hPort();
+	var cBtn = new Btn( inP1.getWire( 1 ) );
+	var mPlayBtn = new Btn( inP1.getWire( 2 ) );
+	var sPlayBtn = new Btn( inP1.getWire( 3 ) );
+	var fireP1Btn = new Btn(  inP1.getWire( 5 ) );
+	var leftP1Btn = new Btn( inP1.getWire( 6 ) );
+	var rightP1Btn = new Btn( inP1.getWire( 7 ) );
+	
+	inP1.getWire( 4 ).raise();	// always set.
+	
+	
+	function Port(initIn, initOut) {
+		this.in_port = initIn;
+		this.out_port = initOut;
+		this.cb = function(val,outP) {
+			outP = val;
+		}
+		this.read = function() {
+			return this.in_port;
+		}
+		this.write = function(value) {
+			// this.out_port = value;
+			this.cb( value, this.out_port );
+		}
+		this.inBits = function(bits,bSet) {
+			if( bSet )
+				this.in_port |= bits;
+			else
+				this.in_port &= ~bits;
+		}
+		this.outBits = function(bits,bSet) {
+			if( bSet )
+				this.in_port |= bits;
+			else
+				this.in_port &= ~bits;
+		}
+		this.resetIn(val) {
+			this.in_port = val;
+		}
+		this.writeCallback = function(f) {
+			this.cb = f;
+		}
+	}
+	
+	var Ports = [
+		new Port(0x0E, 0 ),	// 0
+		new Port(0x08, 0),	// 1
+		new Port(0x80, 0),	// 2
+		new Port(0, 0),		// 3
+		new Port(0, 0),		// 4
+		new Port(0, 0),		// 5
+	];
+	
+	Ports[0] = new Port(0x0E, 0 );
+	Ports[1] = new Port(0x08, 0);
+	Ports[2] = new Port(0x80, 0);
+	Ports[3] = new Port(0, 0);
+	Ports[4] = new Port(0, 0);
+	Ports[5] = new Port(0, 0);
+	
+	var OUT_PORT3 = 0;
+	var OUT_PORT5 = 0;
+	var IN_PORT0 = 0x0E;
+	var IN_PORT1 = 0x08;
+	var IN_PORT2 = 0x80;
+	
+	var coinBtn = new consoleButton(0x01);
+	var leftBtn = new consoleButton(0x20);
+	var rightBtn = new consoleButton(0x40);
+	var leftP1Btn = new consoleButton(0x20);
+	var rightP1Btn = new consoleButton(0x40);
+	var leftP2Btn = new consoleButton(0x20);
+	var rightP2Btn = new consoleButton(0x40);
+	
+	var fireBtn = new consoleButton(0x10);
+	var fireP1Btn = new consoleButton(0x10);
+	var fireP2Btn = new consoleButton(0x10);
+	
+	var multiPlayerBtn = new consoleButton(0x02);
+	var singlePlayerBtn = new consoleButton(0x04);
+	
+	var dip = new dipSwitch();
+	
+	var tiltBtn = new consoleButton(0x04);
+	
+	
+	var a = enableAudio();
+	
+	var onWrite3 = function( value, outP ) {
+	}
+	
+	this.init = function(numShips) {
+		
+		var shifter = new bitShifter();
+		
+		OUT_PORT3 = 0;
+		OUT_PORT5 = 0;
+		IN_PORT0 = 0x0E;
+		IN_PORT1 = 0x08;
+		IN_PORT2 = 0x80;
+		var ships = 3;
+		if( typeof(numShips) == 'number' && numShips > 2 && numShips < 7)
+		{
+			ships = numShips;
+		}
+		
+		switch(ships)
+		{
+			case 4:
+				IN_PORT2 |= 0x01;
+				break;
+			case 5:
+				IN_PORT2 |= 0x02;
+				break;
+			case 6:
+				IN_PORT2 |= 0x03;
+				break;
+		}
+		
+	}
+	
+	this.read = function(port) {
+		return Ports[port].read();
+	}
+	
+	this.read0 = function() {
+		
+		return (0x0E|fireBtn.value()|leftBtn.value()|rightBtn.value());
+		
+		return IN_PORT0;
+	}
+	
+	this.read1 = function() {
+		return (0x08|coinBtn.value()|singlePlayerBtn.value()|multiPlayerBtn.value()|
+					fireP1Btn.value()|leftP1Btn.value()|rightP1Btn.value());
+		
+		return  IN_PORT1;
+	}
+	
+	this.read2 = function() {
+		return (0x80|dip.value() | tiltBtn.value() |
+					fireP2Btn.value()|leftP2Btn.value()|rightP2Btn.value());
+
+		return IN_PORT2;
+	}
+	
+	this.read3 = function() {
+		return shifter.readValue();
+	}
+	
+	this.write2 = function(value) {
+		shifter.setShift(value);
+	}
+	
+	this.write3 = function(value) {
+		if( (value & 0x02) && !(OUT_PORT3 & 0x02) )
+			a.playShot();
+		
+		if( (value & 0x04) && !(OUT_PORT3 & 0x04) )
+			a.playBaseHit();
+		
+		if( (value & 0x08) && !(OUT_PORT3 & 0x08) )
+			a.playInvHit();
+		
+		OUT_PORT3 = value;
+	}
+	
+	this.write4 = function(value) {
+		shifter.setValue(value);
+	}
+	
+	this.write5 = function(value) {
+		if( (value & 0x01) && !(OUT_PORT3 & 0x01) )
+			a.playWalk1();
+		
+		if( (value & 0x02) && !(OUT_PORT3 & 0x02) )
+			a.playWalk2();
+		
+		if( (value & 0x04) && !(OUT_PORT3 & 0x04) )
+			a.playWalk3();
+		
+		if( (value & 0x08) && !(OUT_PORT3 & 0x08) )
+			a.playWalk4();
+		
+		OUT_PORT5 = value;
+	}
+	
+	this.coin = function(down) {
+		if(down)
+			IN_PORT1 |= 0x01;
+		else
+			IN_PORT1 &= ~0x01;
+	}
+	
+	this.multiPlayer = function(down) {
+		if(down)
+			IN_PORT1 |= 0x02;
+		else
+			IN_PORT1 &= ~0x02;
+	}
+	
+	this.singlePlayer = function(down) {
+		if(down)
+			IN_PORT1 |= 0x04;
+		else
+			IN_PORT1 &= ~0x04;
+	}
+	
+	this.left = function(down) {
+		if( down )
+			IN_PORT0 |= 0x20;
+		else
+			IN_PORT0 &= ~0x20;
+	}
+	
+	this.right = function(down) {
+		if( down )
+			IN_PORT0 |= 0x40;
+		else
+			IN_PORT0 &= ~0x40;
+	}
+	
+	this.left1 = function(down) {
+		if(down)
+			IN_PORT1 |= 0x20;
+		else
+			IN_PORT1 &= ~0x20;
+	}
+	
+	this.right1 = function(down) {
+		if(down)
+			IN_PORT1 |= 0x40;
+		else
+			IN_PORT1 &= ~0x40;
+	}
+	
+	this.left2 = function(down) {
+		if(down)
+			IN_PORT2 |= 0x20;
+		else
+			IN_PORT2 &= ~0x20;
+	}
+	
+	this.right2 = function(down) {
+		if(down)
+			IN_PORT2 |= 0x40;
+		else
+			IN_PORT2 &= ~0x40;
+	}
+	
+	this.leftButton = function(down) {
+		this.left1(down);
+		this.left2(down);
+	}
+	
+	this.rightButton = function(down) {
+		this.right1(down);
+		this.right2(down);
+	}
+	
+	this.fire = function(down) {
+		if(down)
+		{
+			IN_PORT1 |= 0x10;
+			IN_PORT2 |= 0x10;
+		}
+		else
+		{
+			IN_PORT1 &= ~0x10;
+			IN_PORT2 &= ~0x10;
+		}
+	}
+	this.tilt = function(down) {
+		if( down )
+			IN_PORT2 |= 0x04;
+		else
+			IN_PORT2 &= ~0x04;
+	}
+}
+
+function attachPorts(cpu) {
+	var io = new ports();
+	io.init();
+	
+	cpu.attachPort( 1, io.read1.bind(io) );
+	cpu.attachPort( 2, io.read2.bind(io), io.write2.bind(io) );
+	cpu.attachPort( 3, io.read3.bind(io), io.write3.bind(io) );
+	cpu.attachPort( 4, undefined, io.write4.bind(io) );
+	cpu.attachPort( 5, undefined, io.write5.bind(io) );
+	return io;
+}
+
+function rst( n ) {
+	return (0xc7|(n<<3));
+}		
+
+var cpu = cpu8080.create( 65536 );
+var screen,io;
+var go = false;
+var alt_interrupt = 0;
+var timer,timer2, timer3;
+
+function coin() {
+	io.coin(true);
+	this.setTimeout( io.coin.bind(io,false), 10 );
+}
+
+function Player1() {
+	io.singlePlayer(true);
+	this.setTimeout( io.singlePlayer.bind(io,false), 10 );
+}
+
+function Player2() {
+	io.multiPlayer(true);
+	this.setTimeout( io.multiPlayer.bind(io,false), 10 );
+}
+
+function onLoad() {
+	var code = invadersRom ;		
+	cpu.load(0, code);
+	io = attachPorts(cpu);
+	var canvas = document.getElementById("SCREEN");
+	ctx = canvas.getContext("2d");
+	screen = new video.Screen(cpu, ctx,  canvas.width, canvas.height, false, 0);
+	screen.setBackground( document.getElementById("BGCOLOR").value);
+	screen.setForeground( document.getElementById("FGCOLOR").value);
+	screen.clear();
+	var onKeyDown = function(e) {
+		switch(e.keyCode)
+		{
+			case 67:
+				io.coin(true);break;
+			case 50:
+				io.multiPlayer(true);break;
+			case 49:
+				io.singlePlayer(true);break;
+			case 37:
+			case 65:
+				io.leftButton(true);break;
+			case 39:
+			case 68:
+				io.rightButton(true);break;
+			case 32:
+				io.fire(true);break;
+		}
+	}
+
+	var onKeyUp = function(e) {
+		switch(e.keyCode)
+		{
+			case 67:
+				io.coin(false);break;
+			case 50:
+				io.multiPlayer(false);break;
+			case 49:
+				io.singlePlayer(false);break;
+			case 37:
+				io.leftButton(false);break;
+			case 39:
+				io.rightButton(false);break;
+			case 32:
+				io.fire(false);break;
+		}
+	}
+	
+	this.document.addEventListener("keydown", onKeyDown, false);
+	this.document.addEventListener("keyup", onKeyUp, false);
+	canvas.addEventListener("keydown", onKeyDown, false);
+	canvas.addEventListener("", onKeyUp, false);
+	
+	toggle();
+}
+
+function processInterrupts() {
+	if( cpu.IF )
+	{
+		if( alt_interrupt == 0)
+		{
+			cpu.interrupt(rst(1));
+		}
+		else
+		{
+			cpu.interrupt(rst(2));
+		}
+		alt_interrupt = 1-alt_interrupt;
+	}
+	
+}
+
+function run() {
+	try
+	{
+		cpu.run(4000);
+		// window.postMessage(0, "*");
+		timer = setTimeout(run, 10);
+	}
+	catch ( e )
+	{
+		clearInterval(timer2);
+		clearInterval(timer3);
+		alert( e.message );
+	}
+}
+
+function render() {
+	//screen.setBackground( document.getElementById("BGCOLOR").value);
+	//screen.setForeground( document.getElementById("FGCOLOR").value);
+	screen.render();
+}
+
+function reset() {
+	if( go )
+		toggle();
+
+	cpu.reset();
+	screen.clear();
+	cpu.load(0, invadersRom);
+	io.init();
+}
+
+function startRunning() {
+	var b = document.getElementById("RUN");
+	screen.setBackground( document.getElementById("BGCOLOR").value);
+	screen.setForeground( document.getElementById("FGCOLOR").value);
+	screen.clear();
+	
+	step = 0;
+	b.value = "stop...";
+	timer = setTimeout(run, 10);
+	//window.addEventListener("message", run, false );
+	//window.postMessage(0, "*");
+	timer2 = setInterval(render, 16);
+	timer3 = setInterval(processInterrupts, 1 );
+}
+
+function stopRunning() {
+	var b = document.getElementById("RUN");
+	b.value = "run...";
+	clearInterval(timer3);
+	clearInterval(timer);
+}
+
+function toggle() {
+	go = go ? false : true;
+	if( go )
+	{
+		startRunning();
+	}
+	else
+	{
+		stopRunning();
+	}
+}
