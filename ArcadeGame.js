@@ -144,7 +144,7 @@ function audioPlayer(audio) {
 	}
 	
 	wire.prototype.lower = function() {
-		if(!this.raised)
+		if(this.raised)
 		{
 			this.raised = false;
 		}
@@ -290,7 +290,6 @@ function gameConsole(canvas) {
 	this.addCpu(this.cpu);
 	
 	this.loadRom = function(base_addr, code) {
-		this.cpu.reset();
 		this.cpu.load(base_addr, code);
 	}
 	
@@ -336,13 +335,12 @@ function gameConsole(canvas) {
 	
 	function runCpu(numSteps, interval) {
 		this.cpu.run(numSteps);
-		this.cpuTimer = window.setTimeout( runCpu.bind(this,numSteps,interval) , interval );
 	}
 	
 	this.cpuTimer = 0;	
 	this.runCpu = function(interval, numSteps) {
 		if( this.cpuTimer == 0 )
-			this.cpuTimer = window.setTimeout( runCpu.bind(this,numSteps, interval) , interval );
+			this.cpuTimer = window.setInterval( runCpu.bind(this,numSteps, interval) , interval );
 	}
 	
 	this.stopCpu = function(interval, numSteps) {
@@ -352,9 +350,9 @@ function gameConsole(canvas) {
 	}
 	
 	this.start = function() {
-		this.runCpu(4, 2000);
+		this.runCpu(4, 1600);
 		this.startVideo(16);
-		this.startInterrupts(4);
+		this.startInterrupts(8);
 	}
 	
 	this.stop = function() {
