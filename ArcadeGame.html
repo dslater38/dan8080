@@ -5,6 +5,14 @@
     <title>JavaScripot cpu8080</title>
 	<style>
 	
+	div,input,canvas{
+		position:absolute
+	}
+	
+	.flex {
+		display:flex
+	}
+	
 		input::first-letter {
 			text-decoration : underline
 		}
@@ -63,9 +71,15 @@
 		}
 	</script>
   </head>
-  <body onload="onLoad();" style="height:100%" >
-  <div style="height:80%"><canvas id="SCREEN" width="224" height="256" style="height:80%"/></div>
-  <div ><input type="button" value="Fullscreen" onclick="fullscreen();" /><input type="button" value="Tilt" onclick="tilt(true);" /></div>
+  <body onload="onLoad();" style="background-color:orange" >
+  
+  <div style="position:absolute;top:0;left:0;height:100%;width:100%;background-color:red">
+  <div style="position:absolute;top:0;left:0;height:100%;width:60%;background-color:blue"><canvas id="SCREEN" width="224" height="256" style="height:100%"/></div>
+  <div style="position:absolute;top:0;left:80%;height:100%;width:auto;background-color:yellow">
+  <input type="button" value="Fullscreen" onclick="fullscreen();" />
+  <input type="button" value="Tilt" onclick="tilt(true);" /></div>
+  </div>
+  
   <input type="hidden" id="BGCOLOR" value="#000000" />
   <input type="hidden" id="FGCOLOR" value="#00FFFF" />
   <input type="hidden" id="RUN" value="run..." />

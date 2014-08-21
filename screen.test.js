@@ -55,7 +55,7 @@ var video;
 		this.fg = 0xFF00FF00;
 		this.vmem;
 
-		this.mapMemory( cpu.ram.buffer, 0x2400, 7168 );
+		this.mapMemory( cpu.ram.buffer, 0x2400 + cpu.ram.byteOffset, 7168 );
 		
 		this.data32 = new Uint32Array(this.imageData.data.buffer);
 		
@@ -103,27 +103,28 @@ var video;
 	}
 	
         Screen.prototype.copyScreen = function () {
-		for(var j = 0; j < this.width; j++) {
+		for(var j = 0; j < this.width; ++j) {
 			var src = (j<<5);
-			var k = this.height;
+			var k = this.height+1;
 			for(var i = 0; i < 32; ++i) {
+				var fg = this.rowColor(i);
 				var vram = this.vmem[src];
 				++src;
-				this.setPixel(  this.data32, j, k--, (vram & 0x01) ? this.rowColor(i) : this.bg );
-				this.setPixel(  this.data32, j, k--, (vram & 0x02) ? this.rowColor(i) : this.bg );
-				this.setPixel(  this.data32, j, k--, (vram & 0x04) ? this.rowColor(i) : this.bg );
-				this.setPixel(  this.data32, j, k--, (vram & 0x08) ? this.rowColor(i) : this.bg );
-				this.setPixel(  this.data32, j, k--, (vram & 0x10) ? this.rowColor(i) : this.bg );
-				this.setPixel(  this.data32, j, k--, (vram & 0x20) ? this.rowColor(i) : this.bg );
-				this.setPixel(  this.data32, j, k--, (vram & 0x40) ? this.rowColor(i) : this.bg );
-				this.setPixel(  this.data32, j, k--, (vram & 0x80) ? this.rowColor(i) : this.bg );
+				this.setPixel(  j, --k, (vram & 0x01) ?  fg : this.bg );
+				this.setPixel(  j, --k, (vram & 0x02) ? fg : this.bg );
+				this.setPixel(  j, --k, (vram & 0x04) ? fg : this.bg );
+				this.setPixel(  j, --k, (vram & 0x08) ? fg : this.bg );
+				this.setPixel(  j, --k, (vram & 0x10) ? fg : this.bg );
+				this.setPixel(  j, --k, (vram & 0x20) ? fg : this.bg );
+				this.setPixel(  j, --k, (vram & 0x40) ? fg : this.bg );
+				this.setPixel(  j, --k, (vram & 0x80) ? fg : this.bg );
 			}
 		}
 		this.canvas.putImageData(this.imageData, 0, 0);
         };
-        Screen.prototype.setPixel = function (imagedata, x, y, color) {
+        Screen.prototype.setPixel = function (x, y, color) {
 		var i = (y * this.width + x) ;
-		imagedata[i] = color;
+		this.data32[i] = color;
         };
         return Screen;
     })();

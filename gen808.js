@@ -232,3 +232,60 @@ function res(n) {
 	r8[iA] &= ~(1<<n);
 }
 
+function RLC(d) {
+	var a = r8[d];
+	a = ((a<<1)|(a>>7));
+	if( a & 1 )
+	{
+		r8[iF] |= iCF;
+	}
+	else
+		r8[iF] &= ~iCF;
+	r8[d] = a;
+}
+
+function RL(d)
+{
+	var a = r8[d];
+	var c = (r8[iF] & iCF);
+	
+	if( a & 0x80 )
+		r8[iF] |= iCF;
+	else
+		r8[iF] &= ~iCF;
+	
+	r8[d] = (((a<<1)&0xFF)|c);
+}
+
+
+function RRC(d) {
+	var tmp = r8[d];
+	var t = tmp & 0x01;
+	tmp >>= 1;
+	
+	if( t )
+	{
+		r8[iF] |= iCF;
+		tmp |= 0x80;
+	}
+	else
+		r8[iF] &= ~iCF;
+	r8[d] = tmp & 0xFF;
+}
+
+function RR(d)
+{
+	var tmp = r8[d];
+	var t = tmp & 0x01;
+	tmp >>= 1;
+	if( r8[iF] & iCF )
+		tmp |= 0x80;
+	
+	if( t )
+	{
+		r8[iF] |= iCF;
+	}
+	else
+		r8[iF] &= ~iCF;
+	r8[d] = tmp & 0xFF;
+}

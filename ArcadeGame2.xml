@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" 
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html lang="en-US" xmlns="http://www.w3.org/1999/xhtml"  xml:lang="en"  lang="en">
+  <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>JavaScripot Invaders</title>
+	<style type="text/css">
+	<![CDATA[
+	
+	.flex-container {
+		display: -webkit-flex;
+		display: flex;
+		-webkit-flex-flow: row nowrap;
+		flex-flow: row nowrap;
+	}
+
+	.flex-item {
+		-webkit-flex: 0 auto;
+		flex: 0 auto;
+	}
+		
+		canvas:-webkit-full-screen {
+			height:100%
+		}
+		canvas:-moz-full-screen {
+			height:100%
+		}
+		canvas:-ms-full-screen {
+			height:100%
+		}
+		canvas:-o-full-screen	 {
+			height:100%
+		}
+		canvas:full-screen {
+			height:100%
+		}
+		canvas:-webkit-fullscreen {
+			height:100%
+		}
+		canvas:-moz-fullscreen {
+			height:100%
+		}
+		canvas:-ms-fullscreen {
+			height:100%
+		}
+		canvas:-o-fullscreen	 {
+			height:100%
+		}
+		canvas:fullscreen {
+			height:100%
+		}
+		]]>
+	</style>
+	<script type="text/javascript" src="cpu8080.js" ></script>
+	<script type="text/javascript" src="invaders.rom.js"></script>
+	<script type="text/javascript" src="screen.test.js"></script>
+	<script type="text/javascript" src="audio.js" ></script>
+  	<script type="text/javascript" src="ArcadeGame.js"></script>
+	<script type="text/javascript" >
+		   function fullscreen() {
+			var e = document.getElementById('SCREEN');
+			if (e.requestFullScreen) {  
+				e.requestFullScreen();  
+			} else if (e.mozRequestFullScreen) {  
+				e.mozRequestFullScreen();  
+			} else if (e.webkitRequestFullScreen) {  
+				e.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);  
+			}  
+		}
+		function tilt(down) {
+			io.tilt(down);
+			window.setTimeout( io.tilt.bind(io, !down), 10);
+		}
+	</script>
+  </head>
+  <body onload="onLoad();" style="height:100%" >
+<div class="flex-container" style="height:100%;background-color:grey" >
+<canvas class="flex-item" id="SCREEN" width="224" height="256" style="height:100%;order:1;-webkit-order:1;min-height:256px;min-width:224px"></canvas>
+<div class="flex-item" style="order:2" ><input type="button" value="Fullscreen" onclick="fullscreen();" style="order:2;-webkit-order:2" /><br/>
+<input type="button" value="Tilt" onclick="tilt(true);"  style="order:3;-webkit-order:3" /></div>
+<!-- <canvas id="SCREEN" width="224" height="256" class="flex-item" style="height:100%;order:1;-webkit-order:1;min-height:256px;min-width:224px"/> -->
+<!--
+<div  class="flex-item" style="height:100%;order:1;-webkit-order:1;background-color:red" ><canvas id="SCREEN" width="224" height="256" style="height:100%;order:1;-webkit-order:1;min-height:256px;min-width:224px"/></div>
+ <div style="order:1;-webkit-order:1;background-color:green" ><input class="flex-item"  type="button" value="Fullscreen" onclick="fullscreen();" style="order:2;-webkit-order:2" /></div>
+ <div style="order:1;-webkit-order:2;background-color:blue" ><input class="flex-item" type="button" value="Tilt" onclick="tilt(true);"  style="order:3;-webkit-order:3" /></div>
+  -->
+  </div>
+  <input type="hidden" id="BGCOLOR" value="#000000" />
+  <input type="hidden" id="FGCOLOR" value="#00FFFF" />
+  <input type="hidden" id="RUN" value="run..." />
+  </body>
+</html>
