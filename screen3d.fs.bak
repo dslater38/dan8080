@@ -1,0 +1,218 @@
+precision mediump float;
+uniform int operation;
+uniform vec4 foreground;
+uniform vec4 background;
+uniform sampler2D bitmap;
+varying highp vec2 tex2;
+
+//const int opClear = 0;
+//const int opCopyScreen = 1;
+
+
+bool testbit( int val, int bit ){
+	vec4 floatVal = texture2D( bitmap, vec2( val, bit ) );
+	return (floatVal.a != 0.0);
+}
+
+vec3 rowColor( int row ){
+		if(row < 2)
+			return vec3(1.0, 0.0, 0.0);
+		else if(row < 3)
+			return vec3(0.0, 1.0, 0.0);
+		else if(row < 6)
+			return vec3(0.0, 0.0, 1.0);
+		else if( row < 8 )
+			return vec3(0.0, 1.0, 1.0);
+		else if( row < 16 )
+			return vec3(1.0, 0.0, 1.0);
+		else if( row < 28 )
+			return vec3(1.0, 1.0, 0.0);
+		else if( row < 100 )
+			return vec3(1.0,0.0,0.0);
+		
+		return vec3(1.0, 0.2666666667, 0.2666666667);
+		
+	//	float r = float(row)/255.0;
+		
+	//	if( row > 255 ) return vec3(0.0,0.0,1.0);
+		
+	//	return vec3(r, 0.0, 0.0);
+}
+
+void clear() {
+     gl_FragColor = vec4(1.0,0.0,1.0,1.0); // background;
+}
+
+int mod(int a, int b) {
+	return a-b*(a/b);
+}
+
+bool bitSet(int val, int bit) {
+	int t = 1;
+
+	for(int i=0;i<8 ;i++) {
+		if( i>=bit )
+			break;
+		t *= 2;
+	}
+	val /= t;
+	return (mod(val,2) == 1);
+}
+
+float component(vec4 v, int i){
+	if( i == 0 ) return v.r;
+	if( i == 1 ) return v.g;
+	if( i == 2 ) return v.b;
+	if( i == 3) return v.a;
+	return 0.0;
+}
+
+void copyPixel2(vec2 c)
+{
+	float x = c.x;
+	float y = c.y;
+	x = 224.0*x;
+	y = 256.0*y;
+	int cx = int(x);
+	int cy = int(y);
+	
+	int bitNum = cy + 256*cx;
+	int pixelNum = bitNum / 32;
+	int byteNum = bitNum / 8;
+	int whichElem = mod(byteNum, 4);
+	
+	vec4 texel = texture2D( bitmap, vec2( 0.0, float(pixelNum)/1791.0 ) );
+	
+	float value = component(texel, whichElem);
+	
+	int bit = mod(bitNum,8);
+	
+	bool isSet = bitSet(255*int(value),bit);
+	
+	vec3 clr = isSet ? rowColor(cy) : vec3(0.0,0.5,0.0);
+	
+	gl_FragColor = vec4(clr,1.0);
+}
+
+void copyPixel(highp vec2 c)
+{
+	int cy = int( c.y * 255.0 );
+	int src = cy;	// y<<5
+	int k=0;
+	int cx = int(c.x * 223.0 );
+	int i=cx/8;
+	src = 32*cy+int(cx/8);
+	
+	int pixel = src/4;
+	
+	vec4 texel = texture2D( bitmap, vec2( 0.0, float(pixel)/1791.0 ) );
+	int whichElem = mod(src, 4);
+	float value = component(texel, whichElem);
+	
+	int bit = cx-(i*8);
+	
+	bool isSet = bitSet(255*int(value),bit);
+	vec3 clr = isSet ? rowColor(cy) : vec3(0.0,0.5,0.0);
+	
+	gl_FragColor = vec4(clr,1.0);
+	
+//	vec3 clr = rowColor( i );
+//	float alpha = testbit( src, bit ) ? 1.0 : 0.0;
+//	gl_FragColor = alpha==1.0 ? vec4(clr, alpha ) : vec4(0,0,0,0);
+}
+
+void copyPixel3(highp vec2 c)
+{
+	float offset = 0.99555307535357410669131367385731*c.x + 0.00444692464642589330868632614269*c.y;
+	// vec4 texel = texture2D(bitmap, vec2( offset, 0.5));
+
+	int bitNumber = int(57343.0*offset);
+	int byteNumber = bitNumber/8;
+	int intNumber = byteNumber/4;
+	
+	float pixelNum = float(intNumber);
+	float off = (pixelNum+0.5)*0.00055803571428571;
+	
+	vec4 texel = texture2D(bitmap, vec2( off, 0.5));
+	
+	int whichByte = mod(byteNumber,4);
+	float value = component( texel, whichByte );
+	int bit = mod(bitNumber,8); // bitNumber - 8*byteNumber;
+	bool isSet = bitSet(int(255.0*value+0.5), bit );
+	
+	int cy = int( c.y * 255.0 );
+	
+	vec3 clr = isSet ? vec3(1.0,0.0,1.0) : vec3(0.0, 0.5, 0.0);
+	
+	gl_FragColor = vec4(clr, 1.0);
+}
+
+void copyPixel4(highp vec2 c)
+{
+	float multFac = 0.00055834729201563;
+	// float multFac = 0.00055803571428571;
+	float pixelNum = 1791.0;
+	float offSet = (pixelNum+0.5)*multFac;
+	vec4 texel = texture2D(bitmap, vec2(offSet, 0.0) );
+	
+	gl_FragColor = vec4(texel.r,texel.g,texel.b,texel.a);
+}
+
+void copyPixel5(highp vec2 c)
+{
+	int px = int(223.0*(c.x));
+	int py = int(255.0*(c.y));
+	int bitNum = px*256+py;
+	int byteNum = bitNum / 8;
+	int pixelNum = byteNum / 4;
+	
+	highp float mulFac = 5.5834729201563372417643774427694e-4;
+	
+	float offset = (float(pixelNum)+0.5)*mulFac; // 0.00055803571428571;
+	vec4 texel = texture2D(bitmap, vec2(offset, 0.0) );
+	
+	int whichByte = mod(byteNum,4);
+	float value = component( texel, whichByte );
+	
+	int bit = mod(bitNum,8);
+	bool isSet = bitSet(int(255.0*value+0.5), bit );
+	
+	gl_FragColor = isSet ? vec4(1.0,0.0,1.0,1.0) : vec4(0.0,0.0,0.0,1.0);
+}
+
+void copyPixel6(highp vec2 c)
+{
+	int px = int(223.0*(c.x));
+	int py = int(255.0*(c.y));
+	int bitNum = px*256+py;
+	int byteNum = bitNum / 8;
+	int pixelNum = bitNum / 32;
+	
+	highp float mulFac = 5.5803571428571428571428571428571e-4; //5.5834729201563372417643774427694e-4;
+	
+	highp float addFac = 2.7901785714285714285714285714286e-4;
+	
+	float offset = float(pixelNum)*mulFac +  addFac; // (float(pixelNum)+0.5)*mulFac; // 0.00055803571428571;
+	vec4 texel = texture2D(bitmap, vec2(offset, 0.0) );
+	
+	int whichByte = mod(byteNum,4);
+	float value = component( texel, whichByte );
+	
+	int bit = mod(bitNum,8);
+	bool isSet = bitSet(int(255.0*value+0.5), bit );
+	
+	vec3 clr = rowColor(py);
+	
+	gl_FragColor = isSet ? vec4(clr.rgb,1.0) : vec4(0.0,0.0,0.0,1.0);
+}
+void main()
+{
+	if( operation == 0 )
+	{
+		clear();
+	}
+	else
+	{
+		copyPixel6(tex2);
+	}
+}

@@ -1,4 +1,10 @@
 "use strict";
+
+if( typeof(print) == 'undefined' && typeof(console)=='object' )
+{
+	global.print = function(str) { console.log('%s', str); }
+}
+
 function formatter() {
 	this.buf = new ArrayBuffer(2);
 	this.ar = new Uint8Array(this.buf);

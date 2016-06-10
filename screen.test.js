@@ -53,7 +53,7 @@ var video;
 		this.imageData = this.canvas.createImageData(width, height);
 		this.bg = 0xFFFF00FF;
 		this.fg = 0xFF00FF00;
-		this.vmem;
+		this.vmem = null;
 
 		this.mapMemory( cpu.ram.buffer, 0x2400 + cpu.ram.byteOffset, 7168 );
 		
@@ -94,7 +94,7 @@ var video;
 				row <  6 ? 0xFF0000FF : 
 				row <  8 ? 0xFF00FF00 : 
 				row < 28? 0xFFFF00FF : 
-				0xFFFF0000;
+				0xFFFF4444;
 		
 	}
 	
@@ -103,21 +103,36 @@ var video;
 	}
 	
         Screen.prototype.copyScreen = function () {
+		var kk = this.height;
 		for(var j = 0; j < this.width; ++j) {
 			var src = (j<<5);
-			var k = this.height+1;
+			var k = kk;
 			for(var i = 0; i < 32; ++i) {
-				var fg = this.rowColor(i);
 				var vram = this.vmem[src];
 				++src;
-				this.setPixel(  j, --k, (vram & 0x01) ?  fg : this.bg );
-				this.setPixel(  j, --k, (vram & 0x02) ? fg : this.bg );
-				this.setPixel(  j, --k, (vram & 0x04) ? fg : this.bg );
-				this.setPixel(  j, --k, (vram & 0x08) ? fg : this.bg );
-				this.setPixel(  j, --k, (vram & 0x10) ? fg : this.bg );
-				this.setPixel(  j, --k, (vram & 0x20) ? fg : this.bg );
-				this.setPixel(  j, --k, (vram & 0x40) ? fg : this.bg );
-				this.setPixel(  j, --k, (vram & 0x80) ? fg : this.bg );
+				if(vram)
+				{
+					var fg = this.rowColor(i);
+					this.setPixel(  j, --k, (vram & 0x01) ?  fg : this.bg );
+					this.setPixel(  j, --k, (vram & 0x02) ? fg : this.bg );
+					this.setPixel(  j, --k, (vram & 0x04) ? fg : this.bg );
+					this.setPixel(  j, --k, (vram & 0x08) ? fg : this.bg );
+					this.setPixel(  j, --k, (vram & 0x10) ? fg : this.bg );
+					this.setPixel(  j, --k, (vram & 0x20) ? fg : this.bg );
+					this.setPixel(  j, --k, (vram & 0x40) ? fg : this.bg );
+					this.setPixel(  j, --k, (vram & 0x80) ? fg : this.bg );
+				}
+				else
+				{
+					this.setPixel(  j, --k, this.bg );
+					this.setPixel(  j, --k, this.bg );
+					this.setPixel(  j, --k, this.bg );
+					this.setPixel(  j, --k, this.bg );
+					this.setPixel(  j, --k, this.bg );
+					this.setPixel(  j, --k, this.bg );
+					this.setPixel(  j, --k, this.bg );
+					this.setPixel(  j, --k, this.bg );					
+				}
 			}
 		}
 		this.canvas.putImageData(this.imageData, 0, 0);

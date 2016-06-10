@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
 "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html lang="en-US" xmlns="http://www.w3.org/1999/xhtml"  xml:lang="en"  lang="en">
+<html lang="en-US" xmlns="http://www.w3.org/1999/xhtml"  xml:lang="en" >
   <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>JavaScripot Invaders</title>
 	<style type="text/css">
 	<![CDATA[
-	
+
 	.flex-container {
 		display: -webkit-flex;
 		display: flex;
@@ -19,7 +19,7 @@
 		-webkit-flex: 0 auto;
 		flex: 0 auto;
 	}
-		
+
 		canvas:-webkit-full-screen {
 			height:100%
 		}
@@ -60,13 +60,13 @@
 	<script type="text/javascript" >
 		   function fullscreen() {
 			var e = document.getElementById('SCREEN');
-			if (e.requestFullScreen) {  
-				e.requestFullScreen();  
-			} else if (e.mozRequestFullScreen) {  
-				e.mozRequestFullScreen();  
-			} else if (e.webkitRequestFullScreen) {  
-				e.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);  
-			}  
+			if (e.requestFullScreen) {
+				e.requestFullScreen();
+			} else if (e.mozRequestFullScreen) {
+				e.mozRequestFullScreen();
+			} else if (e.webkitRequestFullScreen) {
+				e.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+			}
 		}
 		function tilt(down) {
 			io.tilt(down);

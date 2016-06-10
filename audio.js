@@ -23,49 +23,58 @@
 		// ufo sound auto-repeats
 		this.ufo.loop = true;
 		
+		this.boundBaseHit = this.basehit.play.bind(this.basehit);
+		this.boundShot = this.shot.play.bind(this.shot);
+		this.boundUfoHit = this.ufohit.play.bind(this.ufohit);
+		this.boundInvHit = this.invhit.play.bind(this.invhit);
+		this.boundWalk1 = this.walk1.play.bind(this.walk1);
+		this.boundWalk2 = this.walk1.play.bind(this.walk2);
+		this.boundWalk3 = this.walk1.play.bind(this.walk3);
+		this.boundWalk4 = this.walk1.play.bind(this.walk4);
+		
 		this.playBaseHit = function() {
 			// this.basehit.play();
-			window.setTimeout(this.basehit.play.bind(this.basehit), 1);
+			window.setTimeout(this.boundBaseHit, 1);
 		}
 		
 		this.playShot = function() {
 			//this.shot.play();
-			window.setTimeout(this.shot.play.bind(this.shot), 1);
+			window.setTimeout(this.boundShot, 1);
 		}
 		
 		this.playUfoHit = function() {
 			//this.ufohit.play();
-			window.setTimeout(this.ufohit.play.bind(this.ufohit), 1);
+			window.setTimeout(this.boundUnoHit, 1);
 		}
 		
 		this.playInvHit = function() {
 			//this.invhit.play();
-			window.setTimeout(this.invhit.play.bind(this.invhit), 1);
+			window.setTimeout(this.boundInvHit, 1);
 		}
 		
 		this.playWalk1 = function() {
 			//this.walk1.play();
-			window.setTimeout(this.walk1.play.bind(this.walk1), 1);
+			window.setTimeout(this.boundWalk1, 1);
 		}
 		
 		this.playWalk2 = function() {
 			//this.walk2.play();
-			window.setTimeout(this.walk2.play.bind(this.walk2), 1);
+			window.setTimeout(this.boundWalk2, 1);
 		}
 		
 		this.playWalk3 = function() {
 			//this.walk3.play();
-			window.setTimeout(this.walk3.play.bind(this.walk3), 1);
+			window.setTimeout(this.boundWalk3, 1);
 		}
 		
 		this.playWalk4 = function() {
 			//this.walk4.play();
-			window.setTimeout(this.walk4.play.bind(this.walk4), 1);
+			window.setTimeout(this.boundWalk4, 1);
 		}
 		
 		this.playUfo = function() {
 			//this.ufohit.play();
-			window.setTimeout(this.ufohit.play.bind(this.ufohit), 1);
+			window.setTimeout(this.boundUfoHit, 1);
 		}
 	
 	}

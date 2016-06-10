@@ -91,9 +91,164 @@ imm16.inc = function() {
 
 
 function Z80Templ() {
-	var R81, R82
+	var R81;		// first 8-bit register reference
+	var R82;		// second 8-bit register reference
+	var R16; 		// 16-bit register reference
+	var IMM8;		// immediate byte
+	var IMM16;	// immediate word
+	var A,B,C,D,E,H,L;	// 8-bit registers
+	var BC,DE,HL;		// 16-bit register pairs
+	
+	var MEM8 = [];
+	
 	this.MOV = function() { R81 = R82;	 /* MOV ARG1 ARG2 */ }
-
+	
+	this.MVI = function() {  R81 = IMM8;  /* MVI  ARG1 */ }
+	this.LXI = function() { R16 = RAM.getUint16( PC, true ); PC += 2; /* LXI  ARG1 */ }
+	
+	this.LDA = function() {
+		A = MEM8[ RAM.getUint16(PC, true) ];
+		PC += 2;
+	}
+	
+	this.STA = function() { 
+		MEM8[ RAM.getUint16(PC, true) ] = A;
+		PC += 2;
+	}
+	
+	this.LHLD = function() { 
+		HL = RAM.getUint16( RAM.getUint16(PC,true), true );
+		PC += 2;
+	}
+	
+	this.SHLD = function() { 
+		RAM.setUint16( RAM.getUint16(PC,true), HL, true );
+		PC += 2;
+	}
+	
+	this.LDAX = function() {
+		A = MEM8[ R16 ];
+	}
+	
+	this.STAX = function() {
+		MEM8[ R16 ] = A;
+	}
+	
+	this.XCHG = function() {
+		var tmp = DE;
+		DE = HL;
+		HL = tmp;
+	}
+	
+	this.ADD = function() {
+		var lhs = A;
+		var rhs = R81;
+		var sum = lhs + rhs;
+		A = sum;
+		if( sum == 0 )
+		{
+			FLAGS |= ZF;
+			FLAGS &= nSF;
+			FLAGS &= nCF;
+			FLAGS |= PF;
+			FLAGS &= nHF;
+		}
+		else
+		{
+			FLAGS &= nZF;
+			
+			if( A < rhs )
+				FLAGS |= CF;
+			else
+				FLAGS &= nCF;
+			
+			if( A & 0x80 )
+				FLAGS |= SF;
+			else
+				FLAGS &= nSF;
+			
+			if( parityTable[A] )
+				FLAGS |= PF;
+			else
+				FLAGS &=nPF;
+			
+			if( (( ((rhs ^ sum) ^ lhs) & 0x10 ) != 0) )
+				FLAGS |= HF;
+			else
+				FLAGS &= nHF;
+		}
+	}
+	
+	this.SUB = function() {
+		var lhs = A;
+		var rhs = R81;
+		var diff = lhs - rhs;
+		A = diff;
+		if( diff == 0 )
+		{
+			FLAGS |= ZF;
+			FLAGS &= nSF;
+			FLAGS &= nCF;
+			FLAGS |= PF;
+			FLAGS &= nHF;
+		}
+		else
+		{
+			FLAGS &= nZF;
+			
+			if( A > rhs )
+				FLAGS |= CF;
+			else
+				FLAGS &= nCF;
+			
+			if( A & 0x80 )
+				FLAGS |= SF;
+			else
+				FLAGS &= nSF;
+			
+			if( parityTable[A] )
+				FLAGS |= PF;
+			else
+				FLAGS &=nPF;
+			
+			if( (( ((rhs ^ diff) ^ lhs) & 0x10 ) != 0) )
+				FLAGS |= HF;
+			else
+				FLAGS &= nHF;
+		}
+	}
+	
+	this.INR = function() {
+		var lhs = R81;
+		var rhs = 1;
+		++(R81);
+		if( R81 == 0 )
+		{
+			FLAGS |= ZF;
+			FLAGS &= nSF;
+			FLAGS |= PF;
+			FLAGS &= nHF;
+		}
+		else
+		{
+			FLAGS &= nZF;
+			
+			if( A & 0x80 )
+				FLAGS |= SF;
+			else
+				FLAGS &= nSF;
+			
+			if( parityTable[A] )
+				FLAGS |= PF;
+			else
+				FLAGS &=nPF;
+			
+			if( (( ((1 ^ R81) ^ lhs) & 0x10 ) != 0) )
+				FLAGS |= HF;
+			else
+				FLAGS &= nHF;			
+		}
+	}
 }
 
 var replacements = function(r1, r2 ) {

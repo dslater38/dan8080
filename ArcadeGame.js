@@ -36,16 +36,16 @@ function bitShifter() {
 	this.bitShift = 0;
 	this.loByte = 0
 	this.hiByte = 0;
-	
+
 	this.setShift = function(s) {
 		this.bitShift = s;
 	}
-	
+
 	this.setValue = function(val) {
 		this.lowByte = this.hiByte;
 		this.hiByte = val;
 	}
-	
+
 	this.readValue = function() {
 		return ((((this.hiByte << 8) | this.lowByte) << this.bitShift) >> 8);
 	}
@@ -53,11 +53,11 @@ function bitShifter() {
 
 function dipSwitch() {
 	this.switches = [];
-	
+
 	this.wireSwitch = function( wire, s ) {
 		this.switches[s] = wire;
 	}
-	
+
 	this.on = function(s) {
 		this.switches[s].raise();
 	}
@@ -79,15 +79,15 @@ function hInPort() {
 			value &= ~(1<<bit);
 		}
 	}
-	
+
 	this.read = function() {
 		return value;
 	}
-	
+
 	this.set = function(val) {
 		this.value = val;
 	}
-	
+
 	this.getWire = function( bit ) {
 		var wire = {
 			"raise" : setBit.bind(this,bit,true),
@@ -100,13 +100,15 @@ function hInPort() {
 function hOutPort() {
 	var ctx = this;
 	this.wires = []
-	
+
 	this.setWire = function(bit, wire ) {
 		this.wires[bit] = wire;
 	}
-	
+
 	this.write = function( value ) {
-		for( var i in this.wires)
+		var l = this.wires.length;
+		// for( var i in this.wires)
+		for( var i=0; i<l; ++i )
 		{
 			if( (value & (1<<i)) != 0 )
 				this.wires[i].raise();
@@ -134,7 +136,7 @@ function audioPlayer(audio) {
 		this.raised = false;
 		this.play = f;
 	};
-	
+
 	wire.prototype.raise = function() {
 		if(!this.raised)
 		{
@@ -142,14 +144,14 @@ function audioPlayer(audio) {
 			this.play();
 		}
 	}
-	
+
 	wire.prototype.lower = function() {
 		if(this.raised)
 		{
 			this.raised = false;
 		}
 	}
-	
+
 	this.wires[0] = new wire(this.audio.playWalk1.bind(this.audio));
 	this.wires[1] = new wire(this.audio.playWalk2.bind(this.audio));
 	this.wires[2] = new wire(this.audio.playWalk3.bind(this.audio));
@@ -158,25 +160,25 @@ function audioPlayer(audio) {
 	this.wires[5] = new wire(this.audio.playBaseHit.bind(this.audio));
 	this.wires[6] = new wire(this.audio.playInvHit.bind(this.audio));
 	this.wires[8] = new wire(this.audio.playUfoHit.bind(this.audio));
-	
+
 	var w = {
 		"play" : this.audio.playUfo.bind(this.audio),
 		"pause" : this.audio.ufo.pause.bind(this.audio.ufo),
 		"raise" : function() { this.play(); },
 		"lower" : function() { this.pause(); }
 	};
-	
-	this.wires[7] = w;
-	
 
-	
+	this.wires[7] = w;
+
+
+
 }
 
 function FlipFlop( flipped, flopped ) {
 	this.flipped = flipped;
 	this.flopped = flopped;
 	this.value = this.flipped;
-	
+
 	this.flipflop = function() {
 		var v = this.value;
 		if( this.value == this.flipped )
@@ -194,7 +196,7 @@ function FlipFlop( flipped, flopped ) {
 // RST n instruction
 function rst( n ) {
 	return (0xc7|(n<<3));
-}		
+}
 
 
 	//
@@ -213,13 +215,13 @@ function gameConsole(canvas) {
 	this.inP1 = new hInPort();
 	this.inP2 = new hInPort();
 	this.inP3 = new hInPort();
-	
+
 	this.outP3 = new hOutPort();
 	this.outP5 = new hOutPort();
 	this.dip = new dipSwitch();
-	this.player = new audioPlayer(enableAudio());	
+	this.player = new audioPlayer(enableAudio());
 	// input port 0
-	
+
 	this.dip.wireSwitch( this.inP0.getWire(0), 4);
 	this.inP0.getWire(1).raise();
 	this.inP0.getWire(2).raise();
@@ -228,9 +230,9 @@ function gameConsole(canvas) {
 	this.leftBtn 	= new Btn( this.inP0.getWire( 5 ) );
 	this.rightBtn 	= new Btn( this.inP0.getWire( 6 ) );
 	this.inP0.getWire(7).raise();	// ? tied to demux port 7 ?
-	
+
 	// input port 1
-	
+
 	this.coinBtn 	= new Btn( this.inP1.getWire( 0 ) );
 	this.mPlayBtn 	= new Btn( this.inP1.getWire( 1 ) );
 	this.sPlayBtn 	= new Btn( this.inP1.getWire( 2 ) );
@@ -239,8 +241,8 @@ function gameConsole(canvas) {
 	this.leftP1Btn = new Btn( this.inP1.getWire( 5 ) );
 	this.rightP1Btn = new Btn( this.inP1.getWire( 6 ) );
 	this.inP1.getWire( 7 ).lower();	// not connected.
-	
-	
+
+
 	// input port 2
 	this.dip.wireSwitch( this.inP2.getWire(0), 3 );
 	this.dip.wireSwitch( this.inP2.getWire(1), 5 );
@@ -250,27 +252,27 @@ function gameConsole(canvas) {
 	this.leftP2Btn = new Btn( this.inP2.getWire( 5 ) );
 	this.rightP2Btn = new Btn( this.inP2.getWire( 6 ) );
 	this.dip.wireSwitch( this.inP2.getWire(7), 7 );
-	
+
 	// input port 3, output port 2, output port 4
-	
+
 	this.shifter = new bitShifter();
-	
+
 	// output port 3
 	this.outP3.setWire( 0, this.player.wires[7] );
 	this.outP3.setWire( 1, this.player.wires[4] );
 	this.outP3.setWire( 2, this.player.wires[5] );
 	this.outP3.setWire( 3, this.player.wires[6] );
-	
+
 	// output port 5
-	
+
 	this.outP5.setWire( 0, this.player.wires[0] );
 	this.outP5.setWire( 1, this.player.wires[1] );
 	this.outP5.setWire( 2, this.player.wires[2] );
 	this.outP5.setWire( 3, this.player.wires[3] );
 	this.outP5.setWire( 4, this.player.wires[8] );
-	
+
 	this.flipflop = new FlipFlop( rst(1), rst(2) );
-	
+
 	this.addCpu = function(cpu) {
 		cpu.attachPort( 0, this.inP0.read.bind(this.inP0) );
 		cpu.attachPort( 1, this.inP1.read.bind(this.inP1) );
@@ -279,82 +281,83 @@ function gameConsole(canvas) {
 		cpu.attachPort( 4, undefined, this.shifter.setValue.bind(this.shifter) );
 		cpu.attachPort( 5, undefined, this.outP5.write.bind(this.outP5) );
 	}
-	
+
 	this.dip.on(7);
 	this.dip.on(3);
 	this.dip.on(5);
 	this.dip.off(4);
-	
+
 	this.cpu = cpu8080.create( 65536 );
-	
+
 	this.addCpu(this.cpu);
-	
+
 	this.loadRom = function(base_addr, code) {
 		this.cpu.load(base_addr, code);
 	}
-	
+
 	this.interruptTimer = 0;
-	
+
 	function doInterrupt(cpu,flipflop) {
 		if( cpu.IF )
 			cpu.interrupt( flipflop.flipflop() );
 	}
-	
+
 	this.startInterrupts = function(interval) {
 		if( this.interruptTimer == 0 )
-			this.interruptTimer = window.setInterval( doInterrupt.bind(this,this.cpu,this.flipflop), interval );		
+			this.interruptTimer = window.setInterval( doInterrupt.bind(this,this.cpu,this.flipflop), interval );
 	}
-	
+
 	this.stopInterrupts = function() {
 		if( this.interruptTimer != 0 )
 			this.interruptTimer = window.clearInterval( this.screenTimer );
 		this.interruptTimer = 0;
 	}
-	
-	var ctx = canvas.getContext("2d");
-	this.screen = new video.Screen(this.cpu, ctx,  canvas.width, canvas.height, false, 0);
-	this.screen.setBackground( document.getElementById("BGCOLOR").value);
-	this.screen.setForeground( document.getElementById("FGCOLOR").value);
-	this.screen.clear();
+
+	// var ctx = canvas.getContext("2d");
+	//this.screen = new video.Screen(this.cpu, ctx,  canvas.width, canvas.height, false, 0);
+	this.screen = new video.Screen(this.cpu, canvas,  canvas.width, canvas.height);
+//	this.screen.setBackground( document.getElementById("BGCOLOR").value);
+//	this.screen.setForeground( document.getElementById("FGCOLOR").value);
+//	this.screen.clear();
 	this.screenTimer = 0;
-	
+
 	function render(screen) {
 		screen.render();
 	}
-	
+
 	this.startVideo = function(interval) {
 		if( this.screenTimer == 0 )
 			this.screenTimer = window.setInterval(render.bind(this,this.screen), interval );
 	}
-	
+
 	this.stopVideo = function() {
 		if( this.screenTimer != 0 )
 			this.screenTimer = window.clearInterval( this.screenTimer );
 		this.screenTimer = 0;
 	}
-	
+
 	function runCpu(numSteps, interval) {
 		this.cpu.run(numSteps);
 	}
-	
-	this.cpuTimer = 0;	
+
+	this.cpuTimer = 0;
 	this.runCpu = function(interval, numSteps) {
 		if( this.cpuTimer == 0 )
 			this.cpuTimer = window.setInterval( runCpu.bind(this,numSteps, interval) , interval );
 	}
-	
+
 	this.stopCpu = function(interval, numSteps) {
 		if( this.cpuTimer != 0 )
 			this.cpuTimer = window.clearInterval( this.cpuTimer );
 		this.cpuTimer = 0;
 	}
-	
+
 	this.start = function() {
 		this.runCpu(4, 1600);
 		this.startVideo(16);
 		this.startInterrupts(8);
 	}
-	
+
 	this.stop = function() {
 		this.stopInterrupts();
 		this.stopVideo();
@@ -365,9 +368,20 @@ function gameConsole(canvas) {
 // var go = false;
 // var console;
 
-
 function onLoad() {
-	var code = invadersRom ;
+	var req = new XMLHttpRequest();
+	req.open("GET","invaders.rom",true);
+	req.responseType = 'arraybuffer';
+	req.onreadystatechange = function() {
+		if(req.readyState == 4)
+			doLoad(req.response);
+	}
+	req.send();
+}
+
+function doLoad(buffer) {
+	// var code = invadersRom ;
+	var code = new Uint8Array(buffer);
 
 	var canvas = document.getElementById("SCREEN");
 	var console = new gameConsole(canvas);
@@ -405,12 +419,12 @@ function onLoad() {
 		if( b != undefined )
 			b.up();
 	}
-	
+
 	window.document.addEventListener("keydown", onKeyDown, false);
 	window.document.addEventListener("keyup", onKeyUp, false);
 	canvas.addEventListener("keydown", onKeyDown, false);
 	canvas.addEventListener("keyup", onKeyUp, false);
-	
+
 	console.start();
 }
 

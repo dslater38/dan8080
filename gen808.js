@@ -1,4 +1,5 @@
 "use strict";
+"use asm";
 
 function formatter() {
 	this.buf = new ArrayBuffer(2);
@@ -43,12 +44,12 @@ var eB = 0, eC = 1, eD = 2, eE = 3, eH = 4, eL = 5, e_HL_ = 6, eA = 7;
 var index_map = [3,     2,    5,    4,    7,   6,    6,      1 ];
 
 // the reg_names maps the register encodings to register names for use in generated comments
-var reg_names = ["B", "C", "D", "E", "H", "L", "m", "A"];
+var reg_names = ["B", "C", "D", "E", "H", "L", "[HL]", "A"];
 
 
 // 16-bit register pair encodings  in an instruction using 2 bits.
 // Note: for PUSH & POP, encoding 3 represents PSW (AF) instead of SP
-var eBC = 0, eDE = 1, eHL = 2, eSP = 3, ePSW=3;
+var eBC = 0, eDE = 1, eHL = 2, eSP = 3, ePSW=3,ePC=4;
 // index16_map - this maps the 16-bit register pair encodings above to
 // the corresponding register index in the regs DataView
 // same as r8 above except for the 16-bit regs.
@@ -99,18 +100,18 @@ function MOV( d, s ) {
 	var reDST = /DST/;
 	var reSRC = /SRC/;
 	var pattern;
-	if( d == e_HL_ )
+	if( s == d )
+	{
+		// s== d is a NOP
+		pattern = " }\t // MOV iD, iS == NOP"
+	}
+	else if( d == e_HL_ )
 	{
 		pattern = "ram.setUint8( regs.getUint16(DST,true), r8[SRC] ); }\t // MOV m, iS"
 	}
 	else if( s == e_HL_ )
 	{
 		pattern = "r8[DST] = ram.getUint8( regs.getUint16(SRC, true) ); }\t // MOV iD, m";
-	}
-	else if( s == d )
-	{
-		// s== d is a NOP
-		pattern = " }\t // MOV iD, iS == NOP"
 	}
 	else
 	{
@@ -121,6 +122,10 @@ function MOV( d, s ) {
 	str += pattern.replace("SRC",f.formatUbyte(iS)).replace("DST",f.formatUbyte(iD)).replace("iD",reg_names[d]).replace("iS",reg_names[s]);
 
 	return str;
+}
+
+function replaceReadImm8(str) {
+	return str.replace( "readImm8()", "ram8[ (r16[iPC])++ ]" ).replace(/iPC/g, f.formatUbyte(index16_map[ePC]));
 }
 
 // MVI (move immediate ) instruction generator.
@@ -139,7 +144,7 @@ function MVI(d) {
 	{
 		pattern = "r8[DST] = readImm8(); } \t// MVI sD, imm8";
 	}
-	str += pattern.replace("DST",f.formatUbyte(iD)).replace("sD",reg_names[d]);
+	str += replaceReadImm8(pattern.replace(/DST/g,f.formatUbyte(iD)).replace(/sD/g,reg_names[d]));
 	return str;
 }
 
@@ -171,22 +176,43 @@ function LXI( d ) {
 	var code = (d<<4)|0x01;
 	var str = iPrefix(code);
 	var pattern = "regs.setUint16( DST, readImm16(), true ); } // LXI sD"
-	return str + pattern.replace("DST", f.formatUbyte(iD)).replace("sD", reg16_names[d]);
+	return str + pattern.replace(/DST/g, f.formatUbyte(iD)).replace(/sD/g, reg16_names[d]);
 }
 
-//generate the LXI instructions. 
+// generate LDA instruction
 print();
-print("// LXI rp - (rp<<4)|0x01)");
-print("// 16-bit registers BC == 2, DE == 4, HL == 6, SP ==8, PC == 10\n\n");
-for( var i=0; i<4; ++i )
-	print( LXI(i) );
+print("// LDA [imm16]");
+function LDA() {
+	var pattern = "instructions[0x3A] = function()  { r8[iA] = ram8[ readImm16() ]; }";
+	return  pattern.replace(/iA/g, f.formatUbyte(index_map[eA]) );
+}
+print(LDA());
+
+print("// STA [imm16]");
+function STA() {
+	var pattern = "instructions[0x32] = function()  { ram8[ readImm16() ] = r8[iA]; }"; 
+	return pattern.replace(/iA/g, f.formatUbyte(index_map[eA]) );
+}
+// generate STA instruction
+
+print("// LHLD addr HL <== ram[addr]");
+function LHLD() {
+	var pattern = "instructions[0x2A] = function()  { r16[iHL] = ram.getUint16( readImm16(), true ); }";
+	return  pattern.replace(/iHL/g, f.formatUbyte(index16_map[eHL]));
+}
+
+print("// SHLD addr ram[addr] <== HL");
+function SHLD() {
+	var pattern = "instructions[0x22] = function()  { ram.setUint16( readImm16(), r16[ iHL], true ); }";
+	return  pattern.replace(/iHL/g, f.formatUbyte(index16_map[eHL]));
+}
 
 function LDAX(rp) {
 	var code = 0x0A|(rp<<4);
 	var iD = index16_map[rp];
 	var str = iPrefix(code);
 	var pattern = "r8[iA] = ram.getUint8( regs.getUint16( SRC, true ) );  } // LDAX sD";
-	return str + pattern.replace("iA", f.formatUbyte( index_map[eA] ) ).replace("SRC", f.formatUbyte(iD)).replace("sD", reg16_names[rp]);
+	return str + pattern.replace(/iA/g, f.formatUbyte( index_map[eA] ) ).replace(/SRC/g, f.formatUbyte(iD)).replace(/sD/g, reg16_names[rp]);
 }
 
 print();
@@ -201,7 +227,7 @@ function STAX(rp) {
 	var iD = index16_map[rp];
 	var str = iPrefix(code);
 	var pattern = "ram.setUint8( regs.getUint16( DST, true ), r8[iA]);  } // STAX sD";
-	return str + pattern.replace("iA", f.formatUbyte( index_map[eA] ) ).replace("DST", f.formatUbyte(iD)).replace("sD", reg16_names[rp]);
+	return str + pattern.replace(/iA/g, f.formatUbyte( index_map[eA] ) ).replace(/DST/g, f.formatUbyte(iD)).replace(/sD/g, reg16_names[rp]);
 }
 
 print();
@@ -210,15 +236,203 @@ print("// STAX rp (rp<<4)|0x0A - Load A indirect through BC or DE");
 print( STAX(eBC) );
 print( STAX(eDE) );
 
+// XCHG
+print("// XCHG");
+function XCHG() {
+	var pattern = "instructions[ 0xEB] = function() { r16[iDE] = r16[iHL] + ( r16[iHL] = r16[iDE], 0 );  }";
+	return pattern.replace(/iDE/g,f.formatUbyte(index16_map[eDE])).replace(/iHL/g,f.formatUbyte(index16_map[eHL]));
+}
+print(XCHG());
+
+//generate the LXI instructions. 
+print();
+print("// LXI rp - (rp<<4)|0x01)");
+print("// 16-bit registers BC == 2, DE == 4, HL == 6, SP ==8, PC == 10\n\n");
+for( var i=0; i<4; ++i )
+	print( LXI(i) );
+
 
 function ADD(s) {
 	var code = 0x80|s;
 	var iD = index_map[s];
 	var str = iPrefix(code);
-	var pattern = "";
+	var pattern =	str + " function() { " +
+				"var lhs = r8[iA]; " +
+				"var rhs = SRC; " +
+				"r8[iA] = lhs+rhs; " +
+				"setFlagsZSPC( r8[iA] ); " +
+				"HF( lhs, rhs, r8[iA]); } " +
+				"// ADD iS";
+	
+	var repl = (s==e_HL_) ? "ram.getUint8( regs.getUint16(SRC, true) )".replace("SRC",f.formatUbyte(index_map[s])) : f.formatUbyte(index_map[s]);
+	
+	return pattern.replace(/iA/g,f.formatUbyte(index_map[eA])).replace(/SRC/g, repl).replace("iS",reg_names[s]);
+}
+
+print("// ADD s - ((ddd<<3)|0x06)");
+for( var i=0; i<8; ++i)
+	print(ADD(i));
+
+function ADI() {
+	var code = 0xC6;
+	var str = iPrefix(code);
+	var pattern =	str + " function() { " +
+				"var lhs = r8[iA]; " +
+				"var rhs = r8[readImm16()]; " +
+				"r8[iA] = lhs+rhs; " +
+				"setFlagsZSPC( r8[iA] ); " +
+				"HF( lhs, rhs, r8[iA]); } " +
+				"// ADI [imm16]";
+	
+
+	return pattern.replace(/iA/g,f.formatUbyte(index_map[eA]));
+}
+print(ADI());
+
+function ADC(s) {
+	var code = 0x88|s;
+	var iD = index_map[s];
+	var str = iPrefix(code);
+	var pattern =	str + " function() { " +
+				"var lhs = r8[iA]; " +
+				"var rhs = SRC +  (getCF() ? 1 : 0); " +
+				"r8[iA] = lhs+rhs; " +
+				"setFlagsZSPC( r8[iA] ); " +
+				"HF( lhs, rhs, r8[iA]); } " +
+				"// ADC iS";
+	
+	var repl = (s==e_HL_) ? "ram.getUint8( regs.getUint16(SRC, true) )".replace("SRC",f.formatUbyte(index_map[s])) : f.formatUbyte(index_map[s]);
+	
+	return pattern.replace(/iA/g,f.formatUbyte(index_map[eA])).replace(/SRC/g, repl).replace("iS",reg_names[s]);
+}
+
+print("// ADC s - ((ddd<<3)|0x06)");
+for( var i=0; i<8; ++i)
+	print(ADC(i));
+
+
+function ACI() {
+	var code = 0xCE;
+	var str = iPrefix(code);
+	var pattern =	str + " function() { " +
+				"var lhs = r8[iA]; " +
+				"var rhs = r8[readImm16()] +  (getCF() ? 1 : 0); " +
+				"r8[iA] = lhs+rhs; " +
+				"setFlagsZSPC( r8[iA] ); " +
+				"HF( lhs, rhs, r8[iA]); } " +
+				"// ACI [imm16]";
+	
+
+	return pattern.replace(/iA/g,f.formatUbyte(index_map[eA]));
+}
+print(ACI());
+
+
+
+
+
+
+
+function SUB(s) {
+	var code = 0x90|s;
+	var iD = index_map[s];
+	var str = iPrefix(code);
+	var pattern =	str + " function() { " +
+				"var lhs = r8[iA]; " +
+				"var rhs = SRC; " +
+				"r8[iA] = lhs-rhs; " +
+				"setFlagsZSPC( r8[iA] ); " +
+				"HF( lhs, rhs, r8[iA]); } " +
+				"// SUB iS";
+	
+	var repl = (s==e_HL_) ? "ram.getUint8( regs.getUint16(SRC, true) )".replace("SRC",f.formatUbyte(index_map[s])) : f.formatUbyte(index_map[s]);
+	
+	return pattern.replace(/iA/g,f.formatUbyte(index_map[eA])).replace(/SRC/g, repl).replace("iS",reg_names[s]);
+}
+
+print("// SUB s - ((ddd<<3)|0x06)");
+for( var i=0; i<8; ++i)
+	print(SUB(i));
+
+function SUI() {
+	var code = 0xD6;
+	var str = iPrefix(code);
+	var pattern =	str + " function() { " +
+				"var lhs = r8[iA]; " +
+				"var rhs = r8[readImm16()]; " +
+				"r8[iA] = lhs-rhs; " +
+				"setFlagsZSPC( r8[iA] ); " +
+				"HF( lhs, rhs, r8[iA]); } " +
+				"// SUI [imm16]";
+	
+
+	return pattern.replace(/iA/g,f.formatUbyte(index_map[eA]));
+}
+print(SUI());
+
+function SBB(s) {
+	var code = 0x88|s;
+	var iD = index_map[s];
+	var str = iPrefix(code);
+	var pattern =	str + " function() { " +
+				"var lhs = r8[iA]; " +
+				"var rhs = SRC -  (getCF() ? 1 : 0); " +
+				"r8[iA] = lhs-rhs; " +
+				"setFlagsZSPC( r8[iA] ); " +
+				"HF( lhs, rhs, r8[iA]); } " +
+				"// SBB iS";
+	
+	var repl = (s==e_HL_) ? "ram.getUint8( regs.getUint16(SRC, true) )".replace("SRC",f.formatUbyte(index_map[s])) : f.formatUbyte(index_map[s]);
+	
+	return pattern.replace(/iA/g,f.formatUbyte(index_map[eA])).replace(/SRC/g, repl).replace("iS",reg_names[s]);
+}
+
+print("// SBB s - ((ddd<<3)|0x06)");
+for( var i=0; i<8; ++i)
+	print(SBB(i));
+
+
+function SBI() {
+	var code = 0xDE;
+	var str = iPrefix(code);
+	var pattern =	str + " function() { " +
+				"var lhs = r8[iA]; " +
+				"var rhs = r8[readImm16()]  - (getCF() ? 1 : 0); " +
+				"r8[iA] = lhs-rhs; " +
+				"setFlagsZSPC( r8[iA] ); " +
+				"HF( lhs, rhs, r8[iA]); } " +
+				"// SBI [imm16]";
+	
+
+	return pattern.replace(/iA/g,f.formatUbyte(index_map[eA]));
+}
+print(SBI());
+
+
+function INR(d) {
+	var code = 0x04|(d<<3);
+	var str = iPrefix(code);
+	pattern = str + "function() { " +
+				"++(DST) ;" +
+				"setFlagsZSP(DST); " +
+				"if( (DST & 0x0F) == 0 ) {r8[iF] |= iHF;} else {r8[iF] &= (~iHF);} ";
+	
 }
 
 
+
+
+
+
+
+
+
+// generate the ADD s instructions
+print();
+for( var i=0; i<8; ++i )
+{
+	print( MVI(i) );
+}
 
 function bit(n) {
 	ZF( r8[iA] & (1<<n) );

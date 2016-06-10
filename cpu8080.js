@@ -392,7 +392,7 @@
 			true,false,false,true,false,true,true,false,false,true,true,false,true,false,false,true,
 			false,true,true,false,true,false,false,true,true,false,false,true,false,true,true,false,
 			false,true,true,false,true,false,false,true,true,false,false,true,false,true,true,false,
-			true,false,false,true,false,true,true,false,false,true,true,false,true,false,false,true,
+			true,false,false,true,false,true,true,false,false,true,true,false,true,false,false,true
 			];
 			
 			// set the Zero flag
@@ -743,7 +743,7 @@
 			
 			// SBB A, r
 			function SBB_HL_( ) {
-				doSUB( ram8[ r16[ iHL] ] + (getCF() ? 1 : 0) );
+				doSUB( ram8[ r16[ iHL] ] - (getCF() ? 1 : 0) );
 			}
 			
 			function SBB_R( s ) {
@@ -760,7 +760,7 @@
 			}
 			// SBI
 			instructions[ 0xDE ] = function() {
-				doSUB( readImm8() + (getCF() ? 1 : 0) );
+				doSUB( readImm8() - (getCF() ? 1 : 0) );
 			}
 			
 			
