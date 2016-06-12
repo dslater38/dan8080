@@ -157,6 +157,10 @@ function Player1() {
 	this.setTimeout( io.singlePlayer.bind(io,false), 10 );
 }
 
+function onBGChanged() {
+	screen.setBackground(document.getElementById("BGCOLOR").value);
+}
+
 function Player2() {
 	io.multiPlayer(true);
 	this.setTimeout( io.multiPlayer.bind(io,false), 10 );
@@ -173,10 +177,10 @@ function onLoad() {
      cpu.load(0x4800, lrescue6);
 	io = attachPorts(cpu);
 	var canvas = document.getElementById("SCREEN");
-	ctx = canvas.getContext("2d");
-	screen = new video.Screen(cpu, ctx,  canvas.width, canvas.height, false, 0);
+	//ctx = canvas.getContext("2d");
+	screen = new video.Screen(cpu, canvas,  canvas.width, canvas.height, false, 0);
 	screen.setBackground( document.getElementById("BGCOLOR").value);
-	screen.setForeground( document.getElementById("FGCOLOR").value);
+	//screen.setForeground( document.getElementById("FGCOLOR").value);
 	screen.clear();
 	this.document.onkeydown = function(e) {
 		switch(e.keyCode)
@@ -242,8 +246,8 @@ function run() {
 }
 
 function render() {
-	screen.setBackground( document.getElementById("BGCOLOR").value);
-	screen.setForeground( document.getElementById("FGCOLOR").value);
+	//screen.setBackground( document.getElementById("BGCOLOR").value);
+	//screen.setForeground( document.getElementById("FGCOLOR").value);
 	screen.render();
 }
 
@@ -262,8 +266,8 @@ function toggle() {
 	var b = document.getElementById("RUN");
 	if( go )
 	{
-		screen.setBackground( document.getElementById("BGCOLOR").value);
-		screen.setForeground( document.getElementById("FGCOLOR").value);
+		//screen.setBackground( document.getElementById("BGCOLOR").value);
+		//screen.setForeground( document.getElementById("FGCOLOR").value);
 		screen.clear();
 		
 		step = 0;

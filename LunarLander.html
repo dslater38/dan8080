@@ -3,6 +3,62 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <title>JavaScripot cpu8080</title>
+    <style>
+	
+	div,canvas{
+		position:absolute
+	}
+	
+	.flex {
+		display:flex
+	}
+	
+		input::first-letter {
+			text-decoration : underline
+		}
+		
+		canvas:-webkit-full-screen {
+			height:100%;
+			top:0px
+		}
+		canvas:-moz-full-screen {
+			height:100%;
+			top:0px
+		}
+		canvas:-ms-full-screen {
+			height:100%;
+			top:0px
+		}
+		canvas:-o-full-screen	 {
+			height:100%;
+			top:0px
+		}
+		canvas:full-screen {
+			height:100%;
+			top:0px
+		}
+		canvas:-webkit-fullscreen {
+			height:100%
+		}
+		canvas:-moz-fullscreen {
+			height:100%;
+			top:0px
+		}
+		canvas:-ms-fullscreen {
+			height:100%;
+			top:0px
+		}
+		canvas:-o-fullscreen	 {
+			height:100%;
+			top:0px
+		}
+		canvas:fullscreen {
+			height:100%;
+			top:0px
+		}
+    
+    </style>
+    <!--
 	<style>
 		#container
 		{
@@ -28,6 +84,7 @@
 			text-decoration : underline
 		}
 	</style>
+-->
 	<script type="text/javascript" src="cpu8080.js" ></script>
 	<script type="text/javascript" src="lrescue1.js"></script>
 	<script type="text/javascript" src="lrescue2.js"></script>
@@ -35,15 +92,24 @@
 	<script type="text/javascript" src="lrescue4.js"></script>
 	<script type="text/javascript" src="lrescue5.js"></script>
 	<script type="text/javascript" src="lrescue6.js"></script>
-	<script type="text/javascript" src="screen.js"></script>
+	<script type="text/javascript" src="webgl-utils.js"></script>
+	<script type="text/javascript" src="screen3d.js"></script>
 	<script type="text/javascript" src="audio.js" ></script>
   	<script type="text/javascript" src="LunarLander.js"></script>
   </head>
   <body onload="onLoad();">
-  <div>
-  <div id="container"><canvas id="SCREEN" width="256" height="224"  style="position:relative;width:300%;height:300%" /></div>
-  <div style="position:fixed;left:850px" >Background Color <input type="color" value="#000000" id="BGCOLOR" /><br/>Foreground Color <input type="color" value="#FF00FF" id="FGCOLOR" /></div>
-  </div>
+   
+ BG<input type="color" value="#000000" id="BGCOLOR" style="left:50px;top:92%" onchange="onBGChanged();" />
+  FG<input type="color" value="#FF00FF" id="FGCOLOR" style="top:92%" />
+ 			<input type="button" value="(c)oin" onclick="coin();" id="COIN" />
+			<input type="button" value="(1) Player" onclick="Player1();" id="PLAYER1" />
+			<input type="button" value="(2) Players" onclick="Player2();" id="PLAYER2" />
+			<input type="button" value="run..." onclick="toggle();" id="RUN" />
+			<input type="button" value="reset" onclick="reset();" id="RESET" /><br/>
+			
+ <canvas id="SCREEN" width="224" height="256" style="height:90%;"  />
+
+<!--
   <div style="left450px;">
 	<table>
 		<thead><tr><th id="h1">Space Invaders</th></tr></thead>
@@ -58,5 +124,6 @@
 		</tr>
 		</tbody>
 	</table></div>
+	-->
   </body>
 </html>

@@ -313,12 +313,9 @@ function gameConsole(canvas) {
 		this.interruptTimer = 0;
 	}
 
-	// var ctx = canvas.getContext("2d");
-	//this.screen = new video.Screen(this.cpu, ctx,  canvas.width, canvas.height, false, 0);
 	this.screen = new video.Screen(this.cpu, canvas,  canvas.width, canvas.height);
-//	this.screen.setBackground( document.getElementById("BGCOLOR").value);
-//	this.screen.setForeground( document.getElementById("FGCOLOR").value);
-//	this.screen.clear();
+	this.screen.setColors("blue", "Violet", "lime","red","yellow","cyan");
+	
 	this.screenTimer = 0;
 
 	function render(screen) {
@@ -353,7 +350,7 @@ function gameConsole(canvas) {
 	}
 
 	this.start = function() {
-		this.runCpu(4, 1600);
+		this.runCpu(0, 5000);
 		this.startVideo(16);
 		this.startInterrupts(8);
 	}

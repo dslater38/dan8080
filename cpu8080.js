@@ -99,6 +99,19 @@
 			var ram = new DataView( buffer, regs_size, memsize );
 			// Uint8Array is much faster than a DataView, so for 8-bit access, use a Uint8Array to access memory.
 			var ram8 = new Uint8Array(buffer,  regs_size, memsize);
+			var ram16 = new Uint16Array(buffer, regs_size, (memsize>>1) );
+			
+			function getUINT16(index) {
+				return (index & 0x01) ? ram.getUint16(index, true) : ram16[index>>1];
+			}
+			
+			function setUINT16(index, val) {
+				if( index & 0x01 ) {
+					ram.setUint16(index, val, true);
+				} else {
+					ram16[index>>1] = val;
+				}
+			}
 			
 			// array of attached i/o ports. Elements of these arrays should be functions
 			// in_ports should hold functions like function() { return read_value; }
@@ -166,7 +179,7 @@
 				if( typeof(write) == 'function' )
 					out_ports[port] = write;
 				else
-					out_ports[port] = write;
+					out_ports[port] = undefined;
 			}
 			
 			function readImm8( ) {
@@ -176,16 +189,17 @@
 			function readImm16( ) {
 				var p = r16[iPC];
 				r16[iPC] += 2;
-				return ram.getUint16(p, true);
+				// return (p & 0x01) ? ram.getUint16(p, true) : ram16[(p>>1)];
+				return getUINT16(p);
 			}
 			
 			function push16( val ) {
 				r16[iSP] -= 2;
-				ram.setUint16( r16[iSP], val, true );
+				setUINT16( r16[iSP], val );
 			}
 			
 			function pop16() {
-				var val = ram.getUint16( r16[iSP], true );
+				var val = getUINT16( r16[iSP] );
 				r16[iSP] += 2;
 				return val;
 			}
@@ -446,19 +460,24 @@
 				var fl = r8[iF];
 				
 				if( a == 0 )
-					fl |= iZF;
-				else
-					fl &= (~iZF);
-				
-				if( a & 0x80 )
-					fl |= iSF;
-				else
+				{
+					fl |= (iZF|iPF);
 					fl &= (~iSF);
-				
-				if( parityTable[a] )
-					fl |= iPF;
+				}
 				else
-					fl &= (~iPF);
+				{
+					fl &= (~iZF);
+					
+					if( a & 0x80 )
+						fl |= iSF;
+					else
+						fl &= (~iSF);
+					
+					if( parityTable[a] )
+						fl |= iPF;
+					else
+						fl &= (~iPF);
+				}
 							
 				r8[iF] = fl;
 			}
@@ -468,24 +487,29 @@
 				var fl = r8[iF];
 				
 				if( a == 0 )
-					fl |= iZF;
+				{
+					fl |= (iZF|iPF);
+					fl &= ~(iSF|iCF);
+				}
 				else
+				{
 					fl &= (~iZF);
-				
-				if( a & 0x80 )
-					fl |= iSF;
-				else
-					fl &= (~iSF);
-				
-				if( parityTable[a] )
-					fl |= iPF;
-				else
-					fl &= (~iPF);
-				
-				if( a > 255 )
-					fl |= iCF;
-				else
-					fl &= (~iCF);
+					
+					if( a & 0x80 )
+						fl |= iSF;
+					else
+						fl &= (~iSF);
+					
+					if( a > 255 )
+						fl |= iCF;
+					else
+						fl &= (~iCF);
+					
+					if( parityTable[(a&0xFF)] )
+						fl |= iPF;
+					else
+						fl &= (~iPF);
+				}
 				
 				r8[iF] = fl;
 			}
@@ -603,13 +627,13 @@
 			
 			// LHLD addr HL <== ram[addr]
 			instructions[0x2A] = function() {
-				r16[iHL] = ram.getUint16( readImm16(), true );
+				r16[iHL] = getUINT16( readImm16() );
 				// regs.setUint16( iHL, ram.getUint16( readImm16(), true ), true );
 			}
 			
 			// SHLD addr ram[addr] <== HL
 			instructions[0x22] = function() {
-				ram.setUint16( readImm16(), r16[ iHL], true );
+				setUINT16( readImm16(), r16[ iHL]);
 			}
 			
 			function LDAX( s ) {
@@ -1153,18 +1177,24 @@
 			}
 			
 			function JMPTrue( bit ) {
-				var addr = readImm16()
 				if( r8[iF] & bit )
 				{
-					r16[iPC] = addr;
+					r16[iPC] = readImm16();
+				}
+				else
+				{
+					r16[iPC] += 2;
 				}
 			}
 			
 			function JMPFalse( bit ) {
-				var addr = readImm16();
 				if( !(r8[iF] & bit) )
 				{
-					r16[iPC] = addr;
+					r16[iPC] = readImm16();
+				}
+				else
+				{
+					r16[iPC] += 2;
 				}
 			}
 			
@@ -1292,8 +1322,8 @@
 			// XTHL
 			instructions[0xE3] = function() {
 				var sp = r16[iSP];
-				var tmp = ram.getUint16( sp, true );
-				ram.setUint16( sp, r16[iHL], true );
+				var tmp = getUINT16( sp );
+				setUINT16( sp, r16[iHL]);
 				r16[iHL] = tmp;
 			}
 			

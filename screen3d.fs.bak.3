@@ -8,7 +8,7 @@ uniform vec4 baseline;
 uniform vec4 reserves;
 
 uniform sampler2D bitmap;
-varying mediump vec2 tex2;
+varying highp vec2 tex2;
 
 vec4 rowColor( int row ){
 	if( row > 223 )
@@ -64,7 +64,7 @@ void main()
 	int texelX = pixelNum - 64*texelY;
 	
 	float texX = 0.01562500000000000 * float(texelX) + 0.00781250000000000;
-	float texY = 0.01562500000000000* float(texelY) + 0.00781250000000000;
+	float texY = 0.03125000000000000* float(texelY) + 0.01562500000000000;
 	
 	vec4 texel = texture2D(bitmap, vec2(texX, texY) );
 	
