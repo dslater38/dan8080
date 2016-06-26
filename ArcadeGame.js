@@ -210,7 +210,7 @@ function rst( n ) {
 	//	0x80 (8)
 
 
-function gameConsole(canvas) {
+function gameConsole(canvas, cc) {
 	this.inP0 = new hInPort();
 	this.inP1 = new hInPort();
 	this.inP2 = new hInPort();
@@ -312,54 +312,59 @@ function gameConsole(canvas) {
 			this.interruptTimer = window.clearInterval( this.screenTimer );
 		this.interruptTimer = 0;
 	}
-
-	this.screen = new video.Screen(this.cpu, canvas,  canvas.width, canvas.height);
-	this.screen.setColors("blue", "Violet", "lime","red","yellow","cyan");
+	var that = this;
+	this.screen = new video.Screen(this.cpu, canvas,  canvas.width, canvas.height, function() {
+		that.screen.setColors("blue", "Violet", "lime","red","yellow","cyan");
 	
-	this.screenTimer = 0;
+		that.screenTimer = 0;
 
-	function render(screen) {
-		screen.render();
-	}
+		function render(screen) {
+			screen.render();
+		}
 
-	this.startVideo = function(interval) {
-		if( this.screenTimer == 0 )
-			this.screenTimer = window.setInterval(render.bind(this,this.screen), interval );
-	}
+		that.startVideo = function(interval) {
+			if( that.screenTimer == 0 )
+				that.screenTimer = window.setInterval(render.bind(that,that.screen), interval );
+		}
 
-	this.stopVideo = function() {
-		if( this.screenTimer != 0 )
-			this.screenTimer = window.clearInterval( this.screenTimer );
-		this.screenTimer = 0;
-	}
+		that.stopVideo = function() {
+			if( that.screenTimer != 0 )
+				that.screenTimer = window.clearInterval( that.screenTimer );
+			that.screenTimer = 0;
+		}
 
-	function runCpu(numSteps, interval) {
-		this.cpu.run(numSteps);
-	}
+		function runCpu(numSteps, interval) {
+			that.cpu.run(numSteps);
+		}
 
-	this.cpuTimer = 0;
-	this.runCpu = function(interval, numSteps) {
-		if( this.cpuTimer == 0 )
-			this.cpuTimer = window.setInterval( runCpu.bind(this,numSteps, interval) , interval );
-	}
+		that.cpuTimer = 0;
+		that.runCpu = function(interval, numSteps) {
+			if( that.cpuTimer == 0 )
+				that.cpuTimer = window.setInterval( runCpu.bind(that,numSteps, interval) , interval );
+		}
 
-	this.stopCpu = function(interval, numSteps) {
-		if( this.cpuTimer != 0 )
-			this.cpuTimer = window.clearInterval( this.cpuTimer );
-		this.cpuTimer = 0;
-	}
+		that.stopCpu = function(interval, numSteps) {
+			if( that.cpuTimer != 0 )
+				that.cpuTimer = window.clearInterval( that.cpuTimer );
+			that.cpuTimer = 0;
+		}
 
-	this.start = function() {
-		this.runCpu(0, 5000);
-		this.startVideo(16);
-		this.startInterrupts(8);
-	}
+		that.start = function() {
+			that.runCpu(0, 5000);
+			that.startVideo(16);
+			that.startInterrupts(8);
+		}
 
-	this.stop = function() {
-		this.stopInterrupts();
-		this.stopVideo();
-		this.stopCpu();
+		that.stop = function() {
+			that.stopInterrupts();
+			that.stopVideo();
+			that.stopCpu();
+		}
+		if( typeof(cc) == 'function' ) {
+			cc();
+		}
 	}
+	);
 }
 
 // var go = false;
@@ -381,48 +386,51 @@ function doLoad(buffer) {
 	var code = new Uint8Array(buffer);
 
 	var canvas = document.getElementById("SCREEN");
-	var console = new gameConsole(canvas);
+	var console = new gameConsole(canvas, function() {
 
-	console.loadRom(0, code);
-	function btn(code) {
-		var btn;
-		switch(code)
-		{
-			case 67:
-				btn = console.coinBtn;break;
-			case 50:
-				btn = console.mPlayBtn;break;
-			case 49:
-				btn = console.sPlayBtn;break;
-			case 37:
-			case 65:
-				btn = console.leftP1Btn;break;
-			case 39:
-			case 68:
-				btn = console.rightP1Btn;break;
-			case 32:
-				btn = console.fireP1Btn;break;
+		console.loadRom(0, code);
+		function btn(code) {
+			var btn;
+			switch(code)
+			{
+				case 67:
+					btn = console.coinBtn;break;
+				case 50:
+					btn = console.mPlayBtn;break;
+				case 49:
+					btn = console.sPlayBtn;break;
+				case 37:
+				case 65:
+					btn = console.leftP1Btn;break;
+				case 39:
+				case 68:
+					btn = console.rightP1Btn;break;
+				case 32:
+					btn = console.fireP1Btn;break;
+			}
+			return btn;
 		}
-		return btn;
-	}
-	var onKeyDown = function(e) {
-		var b = btn(e.keyCode);
-		if( b != undefined )
-			b.down();
-	}
+		var onKeyDown = function(e) {
+			var b = btn(e.keyCode);
+			if( b != undefined )
+				b.down();
+		}
 
-	var onKeyUp = function(e) {
-		var b = btn(e.keyCode);
-		if( b != undefined )
-			b.up();
+		var onKeyUp = function(e) {
+			var b = btn(e.keyCode);
+			if( b != undefined )
+				b.up();
+		}
+
+		window.document.addEventListener("keydown", onKeyDown, false);
+		window.document.addEventListener("keyup", onKeyUp, false);
+		canvas.addEventListener("keydown", onKeyDown, false);
+		canvas.addEventListener("keyup", onKeyUp, false);
+
+		console.start();
+		
 	}
-
-	window.document.addEventListener("keydown", onKeyDown, false);
-	window.document.addEventListener("keyup", onKeyUp, false);
-	canvas.addEventListener("keydown", onKeyDown, false);
-	canvas.addEventListener("keyup", onKeyUp, false);
-
-	console.start();
+	);
 }
 
 //~ function toggle() {

@@ -6,7 +6,7 @@ var video;
 		document.getElementById("output").innerHTML += str + "<br/>\n";
 	}
 		
-        function Screen(cpu, canvas, width, height) {
+        function Screen(cpu, canvas, width, height, cc) {
 		this.width = width;
 		this.height = height;
 		var gl = WebGLUtils.setupWebGL(canvas );
@@ -36,27 +36,38 @@ var video;
 		this.fg = 0xFF00FF00;
 		this.vmem = null;
 		
-		this.vertexShader = this.loadShader("screen3d.vs");
-		this.fragmentShader = this.loadShader("screen3d.fs");
+		var that = this;
+		
+		this.vertexShader = this.loadShader("screen3d.vs", function(responseText) {
+			that.vertexShader =  responseText;
+			that.loadShader("screen3d.fs", function(responseText) {
+				that.fragmentShader = responseText;
+				that.compileShaders(that.vertexShader, that.fragmentShader);
+				var gl = that.gl;
+				var prog = that.prog;
+				that.mapMemory( cpu.ram.buffer, 0x2400 + cpu.ram.byteOffset, 7168 );
+				
+				var pos_loc = that.gl.getAttribLocation(that.prog, "pos");
+				that.posLoc = pos_loc;
+				that.gl.useProgram(prog);
+				
+				that.attrBG = gl.getUniformLocation(prog, "background");	
+				that.attrSCORE = gl.getUniformLocation(prog, "score");
+				that.attrMAIN = gl.getUniformLocation(prog, "main_");
+				that.attrBUNKERS = gl.getUniformLocation(prog, "bunkers");
+				that.attrPLAYER = gl.getUniformLocation(prog, "player");
+				that.attrBASELINE = gl.getUniformLocation(prog, "baseline");
+				that.attrRESERVES = gl.getUniformLocation(prog, "reserves");
+				that.gl.uniform4f(that.attrBG,0.0, 0.0, 0.0, 1.0);
+				that.createVertexArray();
+				if( typeof(cc) == 'function' ) {
+					cc();
+				}
+			});
+		}
+		);
+		// this.fragmentShader = this.loadShader("screen3d.fs");
 
-		this.compileShaders(this.vertexShader, this.fragmentShader);
-
-		this.mapMemory( cpu.ram.buffer, 0x2400 + cpu.ram.byteOffset, 7168 );
-		
-		var pos_loc = this.gl.getAttribLocation(this.prog, "pos");
-		this.posLoc = pos_loc;
-		this.gl.useProgram(this.prog);
-		
-		this.attrBG = this.gl.getUniformLocation(this.prog, "background");	
-		this.attrSCORE = this.gl.getUniformLocation(this.prog, "score");
-		this.attrMAIN = this.gl.getUniformLocation(this.prog, "main_");
-		this.attrBUNKERS = this.gl.getUniformLocation(this.prog, "bunkers");
-		this.attrPLAYER = this.gl.getUniformLocation(this.prog, "player");
-		this.attrBASELINE = this.gl.getUniformLocation(this.prog, "baseline");
-		this.attrRESERVES = this.gl.getUniformLocation(this.prog, "reserves");
-		
-		this.gl.uniform4f(this.attrBG,0.0, 0.0, 0.0, 1.0);
-		this.createVertexArray();
         }
 
 	Screen.prototype.getHexColor = function(colorStr) {
@@ -179,15 +190,24 @@ var video;
 		this.render();
 	}
 	
-	Screen.prototype.loadShader = function(url)
+	Screen.prototype.loadShader = function(url, cc)
 	{
 		var shader = "";
 		var req = this.getXMLHttpRequest();
-		req.open("GET",url,false);
-		req.send(null);
-		if( req.status === 200)
-			shader = req.responseText;
-		return shader;
+		var isAsync = (typeof(cc) == 'function');
+		req.open("GET",url,isAsync);
+		if( isAsync ) {
+			req.onreadystatechange = function() {
+				if(req.readyState == 4)
+					cc(req.response);
+			}
+			req.send();
+		}else{
+			req.send(null);
+			if( req.status === 200)
+				shader = req.responseText;
+			return shader;
+		}
 	}
 
 	Screen.prototype.XMLHttpFactories = [
