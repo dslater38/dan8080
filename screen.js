@@ -1,4 +1,4 @@
-var video;
+// var video;
 (function (video) {
 	var Screen = (function () {
 	    

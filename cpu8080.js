@@ -102,12 +102,21 @@
 			var ram16 = new Uint16Array(buffer, regs_size, (memsize>>1) );
 			
 			function getUINT16(index) {
-				return (index & 0x01) ? ram.getUint16(index, true) : ram16[index>>1];
+				// return (index & 0x01) ? ram.getUint16(index, true) : ram16[index>>1];
+				return (index & 0x01) ?  ((ram8[index++])|(ram8[index]) << 8) : ram16[index>>1];
+				/*
+				if( (index & 0x01)  ){
+					return ((ram8[index++])|(ram8[index]) << 8);
+				} else {
+					return  ram16[index>>1];
+				} */
 			}
 			
 			function setUINT16(index, val) {
 				if( index & 0x01 ) {
-					ram.setUint16(index, val, true);
+					ram8[index++] = val & 0x00FF;
+					ram8[index] = ((val & 0xFF00)>>8);
+					// ram.setUint16(index, val, true);
 				} else {
 					ram16[index>>1] = val;
 				}

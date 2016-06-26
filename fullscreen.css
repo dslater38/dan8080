@@ -1,0 +1,42 @@
+
+		canvas:-webkit-full-screen {
+			height:100%;
+			top:0px
+		}
+		canvas:-moz-full-screen {
+			height:100%;
+			top:0px
+		}
+		canvas:-ms-full-screen {
+			height:100%;
+			top:0px
+		}
+		canvas:-o-full-screen	 {
+			height:100%;
+			top:0px
+		}
+		canvas:full-screen {
+			height:100%;
+			top:0px;
+			width:100%;
+			left:0px
+		}
+		canvas:-webkit-fullscreen {
+			height:100%
+		}
+		canvas:-moz-fullscreen {
+			height:100%;
+			top:0px
+		}
+		canvas:-ms-fullscreen {
+			height:100%;
+			top:0px
+		}
+		canvas:-o-fullscreen	 {
+			height:100%;
+			top:0px
+		}
+		canvas:fullscreen {
+			height:100%;
+			top:0px
+		}
