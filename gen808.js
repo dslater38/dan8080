@@ -175,7 +175,7 @@ function LXI( d ) {
 	var iD = index16_map[d];
 	var code = (d<<4)|0x01;
 	var str = iPrefix(code);
-	var pattern = "regs.setUint16( DST, readImm16(), true ); } // LXI sD"
+	var pattern = "r16[DST] = readImm16(); } // LXI sD"
 	return str + pattern.replace(/DST/g, f.formatUbyte(iD)).replace(/sD/g, reg16_names[d]);
 }
 
@@ -258,7 +258,7 @@ function ADD(s) {
 	var str = iPrefix(code);
 	var pattern =	str + " function() { " +
 				"var lhs = r8[iA]; " +
-				"var rhs = SRC; " +
+				"var rhs = r8[SRC]; " +
 				"r8[iA] = lhs+rhs; " +
 				"setFlagsZSPC( r8[iA] ); " +
 				"HF( lhs, rhs, r8[iA]); } " +

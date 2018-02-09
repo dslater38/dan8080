@@ -1,4 +1,5 @@
 "use strict";
+
 // SPace Invaders port usage
 //~ Port 0
 	//~ bit 0 DIP4 (Seems to be self-test-request read at power up)
@@ -31,6 +32,9 @@
 	//~ bit 0-7 Shift register data
 
 
+/**
+* @constructor
+*/
 function bitShifter() {
 
 	this.bitShift = 0;
@@ -51,6 +55,9 @@ function bitShifter() {
 	}
 }
 
+/**
+* @constructor
+*/
 function dipSwitch() {
 	this.switches = [];
 
@@ -67,6 +74,9 @@ function dipSwitch() {
 	}
 }
 
+/**
+* @constructor
+*/
 function hInPort() {
 	var value = 0;
 	var ctx = this;
@@ -97,6 +107,9 @@ function hInPort() {
 	}
 }
 
+/**
+* @constructor
+*/
 function hOutPort() {
 	var ctx = this;
 	this.wires = []
@@ -118,6 +131,9 @@ function hOutPort() {
 	}
 }
 
+/**
+* @constructor
+*/
 function Btn(wire) {
 	this.wire = wire;
 	this.down = function() {
@@ -128,10 +144,17 @@ function Btn(wire) {
 	}
 }
 
+/**
+* @constructor
+*/
 function audioPlayer(audio) {
 	this.audio = audio;
 	this.wires = [];
-
+	var that = this;
+	
+	/**
+	* @constructor
+	*/
 	function wire(f) {
 		this.raised = false;
 		this.play = f;
@@ -162,8 +185,8 @@ function audioPlayer(audio) {
 	this.wires[8] = new wire(this.audio.playUfoHit.bind(this.audio));
 
 	var w = {
-		"play" : this.audio.playUfo.bind(this.audio),
-		"pause" : this.audio.ufo.pause.bind(this.audio.ufo),
+		"play" : that.audio.playUfo.bind(that.audio),
+		"pause" : that.audio.ufo.pause.bind(that.audio.ufo),
 		"raise" : function() { this.play(); },
 		"lower" : function() { this.pause(); }
 	};
@@ -174,6 +197,9 @@ function audioPlayer(audio) {
 
 }
 
+/**
+* @constructor
+*/
 function FlipFlop( flipped, flopped ) {
 	this.flipped = flipped;
 	this.flopped = flopped;
@@ -210,7 +236,12 @@ function rst( n ) {
 	//	0x80 (8)
 
 
+/**
+* @constructor
+* @param canvas
+*/
 function gameConsole(canvas, cc) {
+	var that = this;
 	this.inP0 = new hInPort();
 	this.inP1 = new hInPort();
 	this.inP2 = new hInPort();
@@ -274,12 +305,12 @@ function gameConsole(canvas, cc) {
 	this.flipflop = new FlipFlop( rst(1), rst(2) );
 
 	this.addCpu = function(cpu) {
-		cpu.attachPort( 0, this.inP0.read.bind(this.inP0) );
-		cpu.attachPort( 1, this.inP1.read.bind(this.inP1) );
-		cpu.attachPort( 2, this.inP2.read.bind(this.inP2), this.shifter.setShift.bind(this.shifter) );
-		cpu.attachPort( 3, this.shifter.readValue.bind(this.shifter), this.outP3.write.bind(this.outP3) );
-		cpu.attachPort( 4, undefined, this.shifter.setValue.bind(this.shifter) );
-		cpu.attachPort( 5, undefined, this.outP5.write.bind(this.outP5) );
+		cpu.attachPort( 0, that.inP0.read.bind(that.inP0) );
+		cpu.attachPort( 1, that.inP1.read.bind(that.inP1) );
+		cpu.attachPort( 2, that.inP2.read.bind(that.inP2), that.shifter.setShift.bind(that.shifter) );
+		cpu.attachPort( 3, that.shifter.readValue.bind(that.shifter), that.outP3.write.bind(that.outP3) );
+		cpu.attachPort( 4, undefined, that.shifter.setValue.bind(that.shifter) );
+		cpu.attachPort( 5, undefined, that.outP5.write.bind(that.outP5) );
 	}
 
 	this.dip.on(7);
@@ -292,7 +323,7 @@ function gameConsole(canvas, cc) {
 	this.addCpu(this.cpu);
 
 	this.loadRom = function(base_addr, code) {
-		this.cpu.load(base_addr, code);
+		that.cpu.load(base_addr, code);
 	}
 
 	this.interruptTimer = 0;
@@ -303,63 +334,65 @@ function gameConsole(canvas, cc) {
 	}
 
 	this.startInterrupts = function(interval) {
-		if( this.interruptTimer == 0 )
-			this.interruptTimer = window.setInterval( doInterrupt.bind(this,this.cpu,this.flipflop), interval );
+		if( that.interruptTimer == 0 )
+			that.interruptTimer = window.setInterval( doInterrupt.bind(that,that.cpu,that.flipflop), interval );
 	}
 
 	this.stopInterrupts = function() {
-		if( this.interruptTimer != 0 )
-			this.interruptTimer = window.clearInterval( this.screenTimer );
-		this.interruptTimer = 0;
+		if( that.interruptTimer != 0 )
+			that.interruptTimer = window.clearInterval( that.screenTimer );
+		that.interruptTimer = 0;
 	}
-	var that = this;
-	this.screen = new video.Screen(this.cpu, canvas,  canvas.width, canvas.height, function() {
-		that.screen.setColors("blue", "Violet", "lime","red","yellow","cyan");
 	
+	this.screenTimer = 0;
+	
+	function render(screen) {
+		screen.render();
+	}
+	
+	this.stopVideo = function() {
+		if( that.screenTimer != 0 )
+			that.screenTimer = window.clearInterval( that.screenTimer );
 		that.screenTimer = 0;
+	}
 
-		function render(screen) {
-			screen.render();
-		}
 
-		that.startVideo = function(interval) {
-			if( that.screenTimer == 0 )
-				that.screenTimer = window.setInterval(render.bind(that,that.screen), interval );
-		}
+	function runCpu(numSteps, interval) {
+		that.cpu.run(numSteps);
+	}
 
-		that.stopVideo = function() {
-			if( that.screenTimer != 0 )
-				that.screenTimer = window.clearInterval( that.screenTimer );
-			that.screenTimer = 0;
-		}
+	this.cpuTimer = 0;
+	this.runCpu = function(interval, numSteps) {
+		if( that.cpuTimer == 0 )
+			that.cpuTimer = window.setInterval( runCpu.bind(that,numSteps, interval) , interval );
+	}
 
-		function runCpu(numSteps, interval) {
-			that.cpu.run(numSteps);
-		}
-
+	this.stopCpu = function() {
+		if( that.cpuTimer != 0 )
+			that.cpuTimer = window.clearInterval( that.cpuTimer );
 		that.cpuTimer = 0;
-		that.runCpu = function(interval, numSteps) {
-			if( that.cpuTimer == 0 )
-				that.cpuTimer = window.setInterval( runCpu.bind(that,numSteps, interval) , interval );
-		}
+	}
 
-		that.stopCpu = function(interval, numSteps) {
-			if( that.cpuTimer != 0 )
-				that.cpuTimer = window.clearInterval( that.cpuTimer );
-			that.cpuTimer = 0;
-		}
+	this.start = function() {
+		that.runCpu(0, 5000);
+		that.startVideo(16);
+		that.startInterrupts(8);
+	}
 
-		that.start = function() {
-			that.runCpu(0, 5000);
-			that.startVideo(16);
-			that.startInterrupts(8);
-		}
-
-		that.stop = function() {
-			that.stopInterrupts();
-			that.stopVideo();
-			that.stopCpu();
-		}
+	this.stop = function() {
+		that.stopInterrupts();
+		that.stopVideo();
+		that.stopCpu();
+	}
+	
+	this.startVideo = function(interval) {
+		if( that.screenTimer == 0 )
+			that.screenTimer = window.setInterval(render.bind(that,that.screen), interval );
+	}
+	
+	this.screen = video.newScreen(this.cpu, canvas,  canvas.width, canvas.height, function() {
+		that.screen.setColors("blue", "Violet", "lime","red","yellow","cyan");
+		
 		if( typeof(cc) == 'function' ) {
 			cc();
 		}
@@ -375,11 +408,14 @@ function onLoad() {
 	req.open("GET","invaders.rom",true);
 	req.responseType = 'arraybuffer';
 	req.onreadystatechange = function() {
-		if(req.readyState == 4)
+		if(req.readyState == 4) {
 			doLoad(req.response);
+		}
 	}
 	req.send();
 }
+
+window['onLoad'] = onLoad;
 
 function doLoad(buffer) {
 	// var code = invadersRom ;
@@ -387,50 +423,49 @@ function doLoad(buffer) {
 
 	var canvas = document.getElementById("SCREEN");
 	var console = new gameConsole(canvas, function() {
+				console.start();
+				} );
 
-		console.loadRom(0, code);
-		function btn(code) {
-			var btn;
-			switch(code)
-			{
-				case 67:
-					btn = console.coinBtn;break;
-				case 50:
-					btn = console.mPlayBtn;break;
-				case 49:
-					btn = console.sPlayBtn;break;
-				case 37:
-				case 65:
-					btn = console.leftP1Btn;break;
-				case 39:
-				case 68:
-					btn = console.rightP1Btn;break;
-				case 32:
-					btn = console.fireP1Btn;break;
-			}
-			return btn;
+	console.loadRom(0, code);
+	function btn(code) {
+		var btn;
+		switch(code)
+		{
+			case 67:
+				btn = console.coinBtn;break;
+			case 50:
+				btn = console.mPlayBtn;break;
+			case 49:
+				btn = console.sPlayBtn;break;
+			case 37:
+			case 65:
+				btn = console.leftP1Btn;break;
+			case 39:
+			case 68:
+				btn = console.rightP1Btn;break;
+			case 32:
+				btn = console.fireP1Btn;break;
 		}
-		var onKeyDown = function(e) {
-			var b = btn(e.keyCode);
-			if( b != undefined )
-				b.down();
-		}
-
-		var onKeyUp = function(e) {
-			var b = btn(e.keyCode);
-			if( b != undefined )
-				b.up();
-		}
-
-		window.document.addEventListener("keydown", onKeyDown, false);
-		window.document.addEventListener("keyup", onKeyUp, false);
-		canvas.addEventListener("keydown", onKeyDown, false);
-		canvas.addEventListener("keyup", onKeyUp, false);
-
-		console.start();
-		
+		return btn;
 	}
-	);
+	var onKeyDown = function(e) {
+		var b = btn(e.keyCode);
+		if( b != undefined )
+			b.down();
+	}
+
+	var onKeyUp = function(e) {
+		var b = btn(e.keyCode);
+		if( b != undefined )
+			b.up();
+	}
+
+	window.document.addEventListener("keydown", onKeyDown, false);
+	window.document.addEventListener("keyup", onKeyUp, false);
+	canvas.addEventListener("keydown", onKeyDown, false);
+	canvas.addEventListener("keyup", onKeyUp, false);
+
+	
 }
 
 //~ function toggle() {

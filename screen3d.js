@@ -1,18 +1,21 @@
 var video;
 (function (video) {
-	var Screen = (function () {
+	var Scr = (function () {
 
 	function TRACE(str) {
 		document.getElementById("output").innerHTML += str + "<br/>\n";
 	}
 		
-        function Screen(cpu, canvas, width, height, cc) {
+	/**
+	* @constructor
+	*/
+	function Screen3D(cpu, canvas, width, height, cc) {
 		this.width = width;
 		this.height = height;
 		var gl = WebGLUtils.setupWebGL(canvas );
 		// gl.viewport(-(gl.drawingBufferWidth), -(gl.drawingBufferHeight), 2.0*(gl.drawingBufferWidth), 2.0*(gl.drawingBufferHeight));
 		gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-
+/****
 		TRACE("MAX_TEXTURE_SIZE == " + gl.getParameter(gl.MAX_TEXTURE_SIZE) );
 		var vp = gl.getParameter(gl.VIEWPORT);
 		TRACE("VIEWPORT == " + [vp[0], vp[1], vp[2], vp[3]]);
@@ -24,6 +27,7 @@ var video;
 		TRACE("MAX_RENDERBUFFER_SIZE == " + gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) );
 		TRACE("IMPLEMENTATION_COLOR_READ_FORMAT == " + gl.getParameter(gl.IMPLEMENTATION_COLOR_READ_FORMAT) );
 		TRACE("IMPLEMENTATION_COLOR_READ_TYPE == " + gl.getParameter(gl.IMPLEMENTATION_COLOR_READ_TYPE) );
+***/
 		
 		this.gl = gl;
 		this.textureVideoMemory = 0;
@@ -35,6 +39,17 @@ var video;
 		this.bg = 0xFFFF00FF;
 		this.fg = 0xFF00FF00;
 		this.vmem = null;
+		this.mapMemory( cpu.ram.buffer, 0x2400 + cpu.ram.byteOffset, 7168 );
+		
+		this.attrBG = null;
+		this.attrSCORE = null;
+		this.attrMAIN = null;
+		this.attrBUNKERS = null;
+		this.attrPLAYER = null;
+		this.attrBASELINE = null;
+		this.attrRESERVES = null;
+		this.posLoc = null;
+		
 		
 		var that = this;
 		
@@ -44,8 +59,7 @@ var video;
 				that.fragmentShader = responseText;
 				that.compileShaders(that.vertexShader, that.fragmentShader);
 				var gl = that.gl;
-				var prog = that.prog;
-				that.mapMemory( cpu.ram.buffer, 0x2400 + cpu.ram.byteOffset, 7168 );
+				var prog = that.prog;			
 				
 				var pos_loc = that.gl.getAttribLocation(that.prog, "pos");
 				that.posLoc = pos_loc;
@@ -70,7 +84,7 @@ var video;
 
         }
 
-	Screen.prototype.getHexColor = function(colorStr) {
+	Screen3D.prototype.getHexColor = function(colorStr) {
 	    var a = document.createElement('div');
 	    a.style.color = colorStr;
 	    var colors = window.getComputedStyle( document.body.appendChild(a) ).color.match(/\d+/g).map(function(a){ return parseInt(a,10); });
@@ -78,13 +92,13 @@ var video;
 	    return (colors.length >= 3) ? '#' + (((1 << 24) + (colors[0] << 16) + (colors[1] << 8) + colors[2]).toString(16).substr(1)) : false;
 	}	
 
-	Screen.prototype.color2rgba = function(color) {
+	Screen3D.prototype.color2rgba = function(color) {
 		
 		if( color.charAt(0) != "#" )
 			color = this.getHexColor(color);
 
-		var clr = color.substring(1,7);
-		var clr = parseInt("0xFF" + clr);
+		var clr_s = color.substring(1,7);
+		var clr = parseInt("0xFF" + clr_s, 16);
 	
 		return {
 			r : ((clr & 0x0000000000FF0000) >> 16)/255.0,
@@ -94,18 +108,18 @@ var video;
 		};
 	}
 	
-	Screen.prototype.vmem = null;
-	Screen.prototype.vmemTexture = null;
-	Screen.prototype.vArray = null;
-	Screen.prototype.attrOption = -1;
-	Screen.prototype.prog = null;
+	Screen3D.prototype.vmem = null;
+	Screen3D.prototype.vmemTexture = null;
+	Screen3D.prototype.vArray = null;
+	Screen3D.prototype.attrOption = -1;
+	Screen3D.prototype.prog = null;
 
-	Screen.prototype.setBackground = function(color) {
+	Screen3D.prototype.setBackground = function(color) {
 		var c = this.color2rgba(color);
 		this.gl.uniform4f(this.attrBG, c.r, c.g, c.b, c.a);
 	}
 
-	Screen.prototype.setColors = function(score,main_,bunkers,player,baseline,reserves) {
+	Screen3D.prototype.setColors = function(score,main_,bunkers,player,baseline,reserves) {
 		var c = this.color2rgba(score);
 		this.gl.uniform4f(this.attrSCORE, c.r, c.g, c.b, c.a);
 		c = this.color2rgba(main_);
@@ -120,7 +134,7 @@ var video;
 		this.gl.uniform4f(this.attrRESERVES, c.r, c.g, c.b, c.a);
 	}
 	
-	Screen.prototype.compileShaders = function(vertexShader, fragmentShader){
+	Screen3D.prototype.compileShaders = function(vertexShader, fragmentShader){
 		var gl = this.gl;
 		var prog = gl.createProgram();
 		var vs = gl.createShader(gl.VERTEX_SHADER);
@@ -141,7 +155,7 @@ var video;
 		this.prog = prog;
 	}
 
-	Screen.prototype.createVertexArray = function()
+	Screen3D.prototype.createVertexArray = function()
 	{
 		var gl = this.gl;
 		var buffer = gl.createBuffer();
@@ -154,12 +168,12 @@ var video;
 		]);
 		gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
 		gl.enableVertexAttribArray(this.posLoc);
-		gl.vertexAttribPointer(this.posLoc, 2, gl.FLOAT, gl.TRUE, 0, 0);
+		gl.vertexAttribPointer(this.posLoc, 2, gl.FLOAT, true, 0, 0);
 		
 		this.vArray = buffer;
 	}
 
-	Screen.prototype.mapMemory = function( buffer, byteOffset, byteLength ) {
+	Screen3D.prototype.mapMemory = function( buffer, byteOffset, byteLength ) {
 		this.vmem = new Uint8Array( buffer, byteOffset, byteLength );
 		var gl = this.gl;
 		var texture = gl.createTexture();
@@ -173,11 +187,11 @@ var video;
 		this.vmemTexture = texture;
 	}
 
-	Screen.prototype.render = function(){
+	Screen3D.prototype.render = function(){
 		this.copyScreen();
 	}
 
-	Screen.prototype.copyScreen = function() {
+	Screen3D.prototype.copyScreen = function() {
 		var gl = this.gl;
 		// copy the video memory to the texture
 		gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 64, 28, gl.RGBA, gl.UNSIGNED_BYTE, this.vmem );	
@@ -185,12 +199,12 @@ var video;
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 	}
 
-	Screen.prototype.draw = function() {
+	Screen3D.prototype.draw = function() {
 		var gl = this.gl;
 		this.render();
 	}
 	
-	Screen.prototype.loadShader = function(url, cc)
+	Screen3D.prototype.loadShader = function(url, cc)
 	{
 		var shader = "";
 		var req = this.getXMLHttpRequest();
@@ -210,14 +224,14 @@ var video;
 		}
 	}
 
-	Screen.prototype.XMLHttpFactories = [
+	Screen3D.prototype.XMLHttpFactories = [
 	    function () {return new XMLHttpRequest()},
 	    function () {return new ActiveXObject("Msxml2.XMLHTTP")},
 	    function () {return new ActiveXObject("Msxml3.XMLHTTP")},
 	    function () {return new ActiveXObject("Microsoft.XMLHTTP")}
 	];
 	
-	Screen.prototype.getXMLHttpRequest = function() {
+	Screen3D.prototype.getXMLHttpRequest = function() {
 		var xmlhttp = null;
 		for (var i=0;i<this.XMLHttpFactories.length;i++) {
 			try {
@@ -231,7 +245,11 @@ var video;
 	    return xmlhttp;
 	}
 
-        return Screen;
+        // return Screen;
+	function newScreen(cpu, canvas, width, height, cc) {
+		return new Screen3D(cpu, canvas, width, height, cc);
+	}
+	return newScreen;
     })();
-    video.Screen = Screen;
+    video.newScreen = Scr;
 })(video || (video = {}));

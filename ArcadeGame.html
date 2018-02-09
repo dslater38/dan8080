@@ -3,14 +3,6 @@
   <head>
     <meta charset="utf-8"/>
     <title>Space Invaders</title>
-	<link rel="stylesheet" href="fullscreen.css" type="text/css" >
-
-	<script type="text/javascript" src="cpu8080.js" ></script>
-	<script type="text/javascript" src="invaders.rom.js"></script>
-	<script type="text/javascript" src="webgl-utils.js"></script>
-	<script type="text/javascript" src="screen3d.js"></script>
-	<script type="text/javascript" src="audio.js" ></script>
-  	<script type="text/javascript" src="ArcadeGame.js"></script>
 	<script type="text/javascript" >
 		   function fullscrn() {
 			var e = document.getElementById('SCREEN');
@@ -27,7 +19,14 @@
 			window.setTimeout( io.tilt.bind(io, !down), 10);
 		}
 	</script>
-  </head>
+	<link rel="stylesheet" href="fullscreen.css" type="text/css" > 
+	<script type="text/javascript" src="cpu8080.js" ></script>
+	<script type="text/javascript" src="invaders.rom.js"></script>
+	<script type="text/javascript" src="webgl-utils.js"></script>
+	<script type="text/javascript" src="screen3d.js"></script>
+	<script type="text/javascript" src="audio.js" ></script>
+  	<script type="text/javascript" src="ArcadeGame.js"></script>
+</head>
   <body onload="onLoad();" >
  <div style="position:absolute;height:95%;width:100%">
 

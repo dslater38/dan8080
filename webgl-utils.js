@@ -57,11 +57,11 @@
  * visible.
  */
 
-WebGLUtils = function() {
+var WebGLUtils = function() {
 
 /**
  * Creates the HTLM for a failure message
- * @param {string} canvasContainerId id of container of th
+ * @param msg {string} ContainerId id of container of th
  *        canvas.
  * @return {string} The html.
  */
@@ -95,15 +95,15 @@ var OTHER_PROBLEM = '' +
  * Creates a webgl context. If creation fails it will
  * change the contents of the container of the <canvas>
  * tag to an error message with the correct links for WebGL.
- * @param {Element} canvas. The canvas element to create a
+ * @param canvas {Element}. The canvas element to create a
  *     context from.
- * @param {WebGLContextCreationAttirbutes} opt_attribs Any
+ * @param opt_attribs {WebGLContextCreationAttirbutes} Any
  *     creation attributes you want to pass in.
- * @param {function:(msg)} opt_onError An function to call
+ * @param opt_onError {function:(msg)} An function to call
  *     if there is an error during creation.
- * @return {WebGLRenderingContext} The created context.
+ * @return WebGLRenderingContext The created context.
  */
-var setupWebGL = function(canvas, opt_attribs, opt_onError) {
+function setupWebGL(canvas, opt_attribs, opt_onError) {
   function handleCreationError(msg) {
     var container = canvas.parentNode;
     if (container) {
@@ -119,7 +119,7 @@ var setupWebGL = function(canvas, opt_attribs, opt_onError) {
 
   opt_onError = opt_onError || handleCreationError;
 
-  if (canvas.addEventListener) {
+  if (typeof(canvas.addEventListener) == 'function') {
     canvas.addEventListener("webglcontextcreationerror", function(event) {
           opt_onError(event.statusMessage);
         }, false);
@@ -135,9 +135,9 @@ var setupWebGL = function(canvas, opt_attribs, opt_onError) {
 
 /**
  * Creates a webgl context.
- * @param {!Canvas} canvas The canvas tag to get context
+ * @param canvas {!Canvas} The canvas tag to get context
  *     from. If one is not passed in one will be created.
- * @return {!WebGLContext} The created context.
+ * @return WebGLContext The created context.
  */
 var create3DContext = function(canvas, opt_attribs) {
   var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];

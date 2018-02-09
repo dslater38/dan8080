@@ -1,22 +1,24 @@
-(function(_global){
+var cpu8080 = (function(_global){
 	"use strict";
 	
-	var shim = {};
-	  if (typeof(exports) === 'undefined') {
-	    if(typeof define == 'function' && typeof define.amd == 'object' && define.amd) {
-	      shim.exports = {};
-	      define(function() {
-		return shim.exports;
-	      });
-	    } else {
-	      // cpu8080 lives in a browser, define its namespaces in global
-	      shim.exports = typeof(window) !== 'undefined' ? window : _global;
-	    }
-	  }
-	  else {
-	    // cpu8080 lives in commonjs, define its namespaces in exports
-	    shim.exports = exports;
-	  }
+	var shim = {
+			exports : (typeof(window) !== 'undefined' ? window : _global)
+		};
+	  //~ if (typeof(exports) === 'undefined') {
+	    //~ if(typeof define == 'function' && typeof define.amd == 'object' && define.amd) {
+	      //~ shim.exports = {};
+	      //~ define(function() {
+		//~ return shim.exports;
+	      //~ });
+	    //~ } else {
+	      //~ // cpu8080 lives in a browser, define its namespaces in global
+	      //~ shim.exports = typeof(window) !== 'undefined' ? window : _global;
+	    //~ }
+	  //~ }
+	  //~ else {
+	    //~ // cpu8080 lives in commonjs, define its namespaces in exports
+	    //~ shim.exports = exports;
+	  //~ }
 	
 	  (function(exports) {
 		
@@ -47,6 +49,9 @@
 				return new Uint16Array( buffer, byteOffset, byteSize );
 			else
 			{
+				/**
+				* @constructor
+				*/
 				var regs16 = function (b,off,sz) {
 					var view = new DataView(b, off, sz);
 					for( var i=0; i<6; ++i)
@@ -277,9 +282,16 @@
 			}
 			
 			var cpu = {
-				cycles : 0
+				cycles : 0,
+				interrupt : function(code) { return interrupt(code); },
+				step :  function() { step(); },
+				run : function(max_steps) { run(max_steps); },
+				reset :  function() {reset();},
+				load : function( base_addr, prog) { load( base_addr, prog); },
+				attachPort : function(port, read, write) { attachPort( port, read, write); },
+				ram : ram
 				};
-
+/*
 			var config = {
 				writable: true,
 				enumerable: true,
@@ -313,7 +325,6 @@
 			defineProperty( cpu, "attachPort", function(port, read, write) {
 				attachPort( port, read, write);
 			});
-		
 			// add memory			
 			Object.defineProperty( cpu, "ram", {
 				enumerable : true,
@@ -321,6 +332,7 @@
 					return  ram;
 				}
 			});
+*/		
 			
 			// make a property to reflect memory reference through HL i.e. [HL]
 			function makeMemProp( name, r ) {
@@ -995,14 +1007,14 @@
 			
 			
 			
-			function XRA( r ) {
-				var lhs = r8[iA];
-				var rhs = (s!=e_HL_) ? r8[ index_map[s] ] : ram8[ r16[iHL] ];
-				var s = lhs ^ rhs;
-				setFlagsZSPC( s );		
-				r8[iA] = (s ^ 0xFF);
-				r8[iF] &= (~iHF);			
-			}
+			//~ function XRA( r ) {
+				//~ var lhs = r8[iA];
+				//~ var rhs = (s!=e_HL_) ? r8[ index_map[s] ] : ram8[ r16[iHL] ];
+				//~ var s = lhs ^ rhs;
+				//~ setFlagsZSPC( s );		
+				//~ r8[iA] = (s ^ 0xFF);
+				//~ r8[iF] &= (~iHF);			
+			//~ }
 			
 			function doXRA( rhs ) {
 				var lhs = r8[iA];
@@ -1379,10 +1391,12 @@
 		}
 		
 		
-	if(typeof(exports) !== 'undefined') {
+	//if(typeof(exports) !== 'undefined') {
 	    exports.cpu8080 = cpu8080;
-	}		
+	//}		
 		
 	  })(shim.exports);
-})(this);
+	  return shim.exports;
+})(this).cpu8080;
 
+// var cpu8080 = this.cpu8080;
