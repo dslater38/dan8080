@@ -1,0 +1,6 @@
+{
+	"name":"space_invaders",
+	"version":"0.01",
+	"main":"ArcadeGame.html",
+	"node-remote" : true
+}
